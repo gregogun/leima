@@ -1,0 +1,20 @@
+{
+  // Declarations come from tsc, not tsup: tsup's `dts` option bundles its own
+  // TypeScript 5.x via rollup-plugin-dts, which cannot read the TS 7 compiler API.
+  // tsup builds the JS, tsc emits the types.
+  //
+  // `paths` is cleared so workspace deps resolve to their built dist rather than
+  // their source, which would drag another package's files under this rootDir.
+  // `pnpm --recursive` builds in topological order, so that dist already exists.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "paths": {},
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declarationMap": true,
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx"]
+}

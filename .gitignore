@@ -1,0 +1,22 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# apps
+.next/
+out/
+.vercel/
+
+# editors / os
+.DS_Store
+.idea/
+*.log
+
+# env
+.env
+.env.*
+!.env.example
+
+# tsup writes this beside a config while loading it; it can survive a crash
+*.bundled_*.mjs

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "preserve",
+    "moduleDetection": "force",
+    "resolveJsonModule": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "erasableSyntaxOnly": true,
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "exactOptionalPropertyTypes": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+
+    "declaration": true,
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+
+    // Typechecking resolves workspace packages to source, so no build ordering is
+    // needed. At runtime they resolve normally through node_modules to dist.
+    // These paths are relative to this file (TS 7 removed baseUrl).
+    "paths": {
+      "@leima/core": ["./packages/core/src/index.ts"],
+      "@leima/react": ["./packages/react/src/index.ts"],
+      "@leima/server": ["./packages/server/src/index.ts"]
+    }
+  }
+}
