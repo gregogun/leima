@@ -14,14 +14,13 @@
     "dev": "pnpm --recursive --parallel dev",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "pnpm --recursive typecheck",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "pnpm format:check && pnpm typecheck && pnpm test",
-    "clean": "pnpm --recursive exec rm -rf dist .turbo node_modules/.cache",
     "lint": "oxlint && eslint .",
-    "types:check": "tsc --pretty --noEmit",
+    "types:check": "tsc --pretty --noEmit && pnpm --recursive typecheck",
     "knip": "knip",
+    "check": "pnpm format:check && pnpm lint && pnpm types:check && pnpm knip && pnpm test",
+    "clean": "pnpm --recursive exec rm -rf dist .turbo node_modules/.cache",
     "prepare": "lefthook install"
   },
   "devDependencies": {
