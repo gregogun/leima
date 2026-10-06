@@ -3,5 +3,7 @@ packages:
   - 'apps/*'
 
 # esbuild (via tsup) needs its postinstall to fetch the platform binary.
+# lefthook needs its own to install the git hooks.
 onlyBuiltDependencies:
   - esbuild
+  - lefthook

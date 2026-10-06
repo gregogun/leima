@@ -7,7 +7,7 @@
   "license": "MIT",
   "packageManager": "pnpm@10.5.2",
   "engines": {
-    "node": ">=20.19"
+    "node": ">=22.18"
   },
   "scripts": {
     "build": "pnpm --filter \"./packages/*\" --recursive build",
@@ -18,17 +18,25 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "pnpm format:check && pnpm typecheck && pnpm test",
-    "clean": "pnpm --recursive exec rm -rf dist .turbo node_modules/.cache"
+    "clean": "pnpm --recursive exec rm -rf dist .turbo node_modules/.cache",
+    "lint": "oxlint && eslint .",
+    "types:check": "tsc --pretty --noEmit",
+    "knip": "knip",
+    "prepare": "lefthook install"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.6.4",
+    "eslint": "^10.12.0",
+    "eslint-plugin-oxlint": "^1.87.0",
+    "knip": "^6.40.0",
+    "lefthook": "^2.1.17",
+    "oxlint": "^1.87.0",
+    "oxlint-tsgolint": "^7.0.2003",
     "prettier": "^3.6.2",
     "tsup": "^8.5.1",
     "typescript": "^7.0.2",
+    "typescript-eslint": "^8.71.1",
     "vitest": "^5.0.3"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
   }
 }
