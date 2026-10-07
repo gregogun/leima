@@ -18,10 +18,10 @@ export type {
   TearLibrary,
   TearProfile,
   Tooth,
-} from './types.js';
+} from './types.ts';
 
-export { DEFAULT_CONFIG, DEFAULT_MARGIN_MM, SHAPES, type ShapeName } from './defaults.js';
-export { PRESETS } from './presets.js';
+export { DEFAULT_CONFIG, DEFAULT_MARGIN_MM, SHAPES, type ShapeName } from './defaults.ts';
+export { PRESETS } from './presets.ts';
 
 export {
   COORD_PRECISION,
@@ -31,14 +31,14 @@ export {
   pitchMm,
   pitchUnits,
   roundCoord,
-} from './units.js';
+} from './units.ts';
 
-export { hash2, hashRange, hashString, mulberry32, type Prng } from './prng.js';
-export { valueNoise1d } from './noise.js';
+export { hash2, hashRange, hashString, mulberry32, type Prng } from './prng.ts';
+export { valueNoise1d } from './noise.ts';
 
-export { BLEED_OVERSHOOT, createLayout, edgePoint, normaliseConfig } from './layout.js';
-export { TOOTH_SAMPLE_STEP, stampPath, toothOffset } from './path.js';
-export { renderSvg, serializeSvg, stampSvgTree } from './render-svg.js';
+export { BLEED_OVERSHOOT, createLayout, edgePoint, normaliseConfig } from './layout.ts';
+export { TOOTH_SAMPLE_STEP, stampPath, toothOffset } from './path.ts';
+export { renderSvg, serializeSvg, stampSvgTree } from './render-svg.ts';
 
 export {
   CLEAN,
@@ -53,4 +53,4 @@ export {
   defineProfile,
   pickProfile,
   sampleProfile,
-} from './tears/index.js';
+} from './tears/index.ts';

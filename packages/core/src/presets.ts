@@ -1,4 +1,4 @@
-import type { StampPreset } from './types.js';
+import type { StampPreset } from './types.ts';
 
 /** Presets are just partial configs. */
 export const PRESETS: Record<string, StampPreset> = {

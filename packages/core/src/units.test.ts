@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_CONFIG, PRESETS, SHAPES, pitchMm, pitchUnits, roundCoord } from './index.js';
+import { DEFAULT_CONFIG, PRESETS, SHAPES, pitchMm, pitchUnits, roundCoord } from './index.ts';
 
 describe('units', () => {
   it('derives pitch from gauge', () => {

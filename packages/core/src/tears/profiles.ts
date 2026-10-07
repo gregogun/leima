@@ -1,4 +1,4 @@
-import type { TearProfile } from '../types.js';
+import type { TearProfile } from '../types.ts';
 
 /**
  * The six starter profiles, copied from the Perforation Lab prototype. Points

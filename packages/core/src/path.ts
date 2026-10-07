@@ -1,9 +1,9 @@
-import { edgePoint } from './layout.js';
-import { valueNoise1d } from './noise.js';
-import { hash2 } from './prng.js';
-import { sampleProfile } from './tears/index.js';
-import type { EdgeLayout, FibreStroke, StampLayout, StampPath, Tooth } from './types.js';
-import { roundCoord } from './units.js';
+import { edgePoint } from './layout.ts';
+import { valueNoise1d } from './noise.ts';
+import { hash2 } from './prng.ts';
+import { sampleProfile } from './tears/index.ts';
+import type { EdgeLayout, FibreStroke, StampLayout, StampPath, Tooth } from './types.ts';
+import { roundCoord } from './units.ts';
 
 /** Sample spacing along a tooth, in stamp units. */
 export const TOOTH_SAMPLE_STEP = 0.3;

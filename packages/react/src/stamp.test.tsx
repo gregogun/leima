@@ -1,7 +1,7 @@
 import { renderSvg, type StampConfigInput, type StampImage } from '@leima/core';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { Stamp } from './stamp.js';
+import { Stamp } from './stamp.tsx';
 
 const IMAGE: StampImage = { href: 'data:image/png;base64,AAAA', width: 640, height: 320 };
 

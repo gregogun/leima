@@ -8,7 +8,7 @@ import {
   type StampImage,
   type StampLayout,
 } from '@leima/core';
-import { computeDigests } from './digests.js';
+import { computeDigests } from './digests.ts';
 import expected from './expected-digests.json';
 import {
   LAYERS,
@@ -17,8 +17,8 @@ import {
   overlayMarkup,
   profileColour,
   type Layer,
-} from './overlays.js';
-import { calibrationImage } from './test-image.js';
+} from './overlays.ts';
+import { calibrationImage } from './test-image.ts';
 
 // --- State, mirrored to the URL hash so a view can be linked ----------------
 

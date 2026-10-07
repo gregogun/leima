@@ -1,10 +1,10 @@
-import { DEFAULT_CONFIG } from './defaults.js';
-import { createLayout } from './layout.js';
-import { stampPath } from './path.js';
-import { hashString } from './prng.js';
-import { DEFAULT_TEAR_LIBRARY } from './tears/index.js';
-import type { RenderOptions, StampConfigInput, StampImage, StampLayout, SvgNode } from './types.js';
-import { UNITS_PER_MM, roundCoord } from './units.js';
+import { DEFAULT_CONFIG } from './defaults.ts';
+import { createLayout } from './layout.ts';
+import { stampPath } from './path.ts';
+import { hashString } from './prng.ts';
+import { DEFAULT_TEAR_LIBRARY } from './tears/index.ts';
+import type { RenderOptions, StampConfigInput, StampImage, StampLayout, SvgNode } from './types.ts';
+import { UNITS_PER_MM, roundCoord } from './units.ts';
 
 /**
  * Space around the trim for torn teeth and fibres, as a share of the pitch, plus

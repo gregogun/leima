@@ -8,7 +8,7 @@ import {
   stampPath,
   type CornerMode,
   type StampConfigInput,
-} from './index.js';
+} from './index.ts';
 
 /**
  * Determinism rules from the brief: one seeded PRNG consumed in a fixed order,

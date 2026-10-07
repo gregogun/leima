@@ -6,7 +6,7 @@ import {
   stampPath,
   stampSvgTree,
   type StampImage,
-} from './index.js';
+} from './index.ts';
 
 const IMAGE: StampImage = { href: 'data:image/png;base64,AAAA', width: 640, height: 320 };
 

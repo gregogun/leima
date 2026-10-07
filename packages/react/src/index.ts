@@ -1,1 +1,1 @@
-export { Stamp, type StampProps } from './stamp.js';
+export { Stamp, type StampProps } from './stamp.tsx';

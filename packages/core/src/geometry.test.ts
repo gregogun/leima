@@ -7,7 +7,7 @@ import {
   toothOffset,
   type CornerMode,
   type StampConfigInput,
-} from './index.js';
+} from './index.ts';
 
 /** Physical rules the geometry encodes, from the brief's acceptance checks. */
 

@@ -1,4 +1,4 @@
-import type { StampConfig } from './types.js';
+import type { StampConfig } from './types.ts';
 
 /** The defaults from the brief's domain model table. */
 export const DEFAULT_CONFIG: StampConfig = {

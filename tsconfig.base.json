@@ -9,6 +9,10 @@
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "erasableSyntaxOnly": true,
+    // Relative imports name the real .ts file, so every tool (tsc, Vite, Vitest,
+    // Turbopack, tsup, Node) resolves source the same way. Emit rewrites them to .js.
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
 
     "strict": true,
     "noUncheckedIndexedAccess": true,

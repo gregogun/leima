@@ -1,6 +1,6 @@
-import { DEFAULT_CONFIG, DEFAULT_MARGIN_MM } from './defaults.js';
-import { hash2, mulberry32 } from './prng.js';
-import { DEFAULT_TEAR_LIBRARY, HASH_PULL_DEPTH, pickProfile } from './tears/index.js';
+import { DEFAULT_CONFIG, DEFAULT_MARGIN_MM } from './defaults.ts';
+import { hash2, mulberry32 } from './prng.ts';
+import { DEFAULT_TEAR_LIBRARY, HASH_PULL_DEPTH, pickProfile } from './tears/index.ts';
 import type {
   CornerMode,
   EdgeLayout,
@@ -12,8 +12,8 @@ import type {
   StampLayout,
   TearLibrary,
   Tooth,
-} from './types.js';
-import { UNITS_PER_MM, mmToUnits, pitchUnits } from './units.js';
+} from './types.ts';
+import { UNITS_PER_MM, mmToUnits, pitchUnits } from './units.ts';
 
 /** Bleed overshoot as a share of the pitch, before misregistration is added. */
 export const BLEED_OVERSHOOT = 0.45;
