@@ -1,0 +1,313 @@
+:root {
+  --bg: #ebe7df;
+  --panel: #f7f5f0;
+  --ink: #1d1d1b;
+  --muted: #6b6860;
+  --line: #d6d1c6;
+  --accent: #1d1d1b;
+  --pass: #1f7a46;
+  --fail: #b42318;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1b1b1a;
+    --panel: #252523;
+    --ink: #ecebe6;
+    --muted: #9b998f;
+    --line: #3a3936;
+    --accent: #ecebe6;
+    --pass: #5fd08f;
+    --fail: #ff8a7a;
+    color-scheme: dark;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font:
+    13px/1.45 ui-sans-serif,
+    system-ui,
+    sans-serif;
+}
+
+header,
+#controls,
+#focus,
+main {
+  padding: 12px 20px;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+h1 {
+  margin: 0;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+}
+
+h2 {
+  margin: 0;
+  font-size: 14px;
+}
+
+code {
+  font:
+    11px/1.4 ui-monospace,
+    monospace;
+}
+
+button,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+#controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 22px;
+  border-bottom: 1px solid var(--line);
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.field select {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 3px 6px;
+}
+
+.layers {
+  gap: 14px;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--ink);
+}
+
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.seg button {
+  border: 0;
+  background: var(--panel);
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.seg button + button {
+  border-left: 1px solid var(--line);
+}
+
+.seg button[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend i {
+  width: 14px;
+  height: 4px;
+  border-radius: 2px;
+}
+
+.muted,
+.note {
+  color: var(--muted);
+}
+
+.note {
+  margin: 0 0 12px;
+}
+
+.cells {
+  display: grid;
+  grid-template-columns: repeat(var(--columns, 4), minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 760px) {
+  .cells {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 6px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  cursor: zoom-in;
+}
+
+.cell:hover,
+.cell:focus-visible {
+  border-color: var(--line);
+  background: var(--panel);
+}
+
+.cell svg {
+  width: 100%;
+  height: auto;
+  max-width: 220px;
+}
+
+.cell span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+#focus {
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+
+.focus-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.focus-head code {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+}
+
+.focus-head button {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg);
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.focus-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+figure {
+  margin: 0;
+}
+
+figure svg {
+  display: block;
+  width: min(420px, 100%);
+  height: auto;
+  background: #fff;
+  border-radius: 6px;
+}
+
+figcaption {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.stats {
+  min-width: 280px;
+}
+
+table {
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 3px 10px 3px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+th {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 14px 0 0;
+}
+
+dt {
+  color: var(--muted);
+}
+
+dd {
+  margin: 0;
+}
+
+.verdict {
+  padding: 12px 14px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  border: 1px solid currentColor;
+}
+
+.verdict.pass {
+  color: var(--pass);
+}
+
+.verdict.fail {
+  color: var(--fail);
+}
+
+.digests {
+  font:
+    12px/1.4 ui-monospace,
+    monospace;
+}
+
+.digests tr.bad td {
+  color: var(--fail);
+}
