@@ -3,7 +3,7 @@ import { createLayout } from './layout.js';
 import { stampPath } from './path.js';
 import { hashString } from './prng.js';
 import { DEFAULT_TEAR_LIBRARY } from './tears/index.js';
-import type { RenderOptions, StampConfigInput, StampImage, StampLayout } from './types.js';
+import type { RenderOptions, StampConfigInput, StampImage, StampLayout, SvgNode } from './types.js';
 import { UNITS_PER_MM, roundCoord } from './units.js';
 
 /**
@@ -15,9 +15,28 @@ const SHADOW_PADDING = 6;
 
 const fmt = (value: number) => String(roundCoord(value));
 
+const el = (tag: string, attrs: SvgNode['attrs'], children: SvgNode['children'] = []): SvgNode => ({
+  tag,
+  attrs,
+  children,
+});
+
 /**
  * The core stops at an SVG string. The browser and the server both start from it,
  * so they cannot drift apart.
+ */
+export function renderSvg(
+  config: StampConfigInput,
+  image: StampImage | null,
+  options: RenderOptions = {},
+): string {
+  return serializeSvg(stampSvgTree(config, image, options));
+}
+
+/**
+ * The stamp as an element tree: what `renderSvg` serialises, and what bindings
+ * such as `<Stamp>` turn into their own elements. One tree behind every output
+ * means they cannot drift apart. Attribute values are raw; serialisers escape.
  *
  * Bleed: a `<pattern>` holding the image (cover-fit over the print rect, which
  * extends past the trim by `0.45 * pitch` plus the misregistration offset), and
@@ -39,15 +58,15 @@ const fmt = (value: number) => String(roundCoord(value));
  * With no image the print area is plain paper, which is what the lab's debug
  * views want.
  */
-export function renderSvg(
+export function stampSvgTree(
   config: StampConfigInput,
   image: StampImage | null,
   options: RenderOptions = {},
-): string {
+): SvgNode {
   const layout = createLayout(config, options.library ?? DEFAULT_TEAR_LIBRARY);
   const { outline, fibres } = stampPath(layout);
   const { size, pitch, printRect } = layout;
-  const paper = escapeAttr(layout.config.paper ?? DEFAULT_CONFIG.paper ?? '#F3EEE2');
+  const paper = layout.config.paper ?? DEFAULT_CONFIG.paper ?? '#F3EEE2';
   const bleed = layout.config.print.area === 'bleed';
   const shadow = options.shadow ?? false;
   const scale = options.scale ?? UNITS_PER_MM;
@@ -58,68 +77,143 @@ export function renderSvg(
   const pad = VIEW_PADDING * pitch + (shadow ? SHADOW_PADDING : 0);
   const viewWidth = size.width + 2 * pad;
   const viewHeight = size.height + 2 * pad;
-  const title = escapeText(options.title ?? 'Postage stamp');
+  const rectAttrs = {
+    x: fmt(printRect.x),
+    y: fmt(printRect.y),
+    width: fmt(printRect.width),
+    height: fmt(printRect.height),
+  };
 
   // Bleed with an image fills through the pattern; everything else is paper.
   const ink = bleed && image ? `url(#${id}-print)` : paper;
-  const defs: string[] = [];
+  const defs: SvgNode[] = [];
   if (shadow) {
     defs.push(
-      `<filter id="${id}-shadow" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">` +
-        `<feDropShadow dx="0" dy="1.2" stdDeviation="1.6" flood-color="#141a14" flood-opacity=".22"/>` +
-        `<feDropShadow dx="0" dy="0.25" stdDeviation="0.3" flood-color="#141a14" flood-opacity=".22"/>` +
-        `</filter>`,
+      el(
+        'filter',
+        {
+          id: `${id}-shadow`,
+          x: '-15%',
+          y: '-15%',
+          width: '130%',
+          height: '130%',
+          'color-interpolation-filters': 'sRGB',
+        },
+        [
+          el('feDropShadow', {
+            dx: '0',
+            dy: '1.2',
+            stdDeviation: '1.6',
+            'flood-color': '#141a14',
+            'flood-opacity': '.22',
+          }),
+          el('feDropShadow', {
+            dx: '0',
+            dy: '0.25',
+            stdDeviation: '0.3',
+            'flood-color': '#141a14',
+            'flood-opacity': '.22',
+          }),
+        ],
+      ),
     );
   }
-  let print = '';
+  const print: SvgNode[] = [];
   if (image && bleed) {
     defs.push(
-      `<pattern id="${id}-print" patternUnits="userSpaceOnUse" x="${fmt(printRect.x)}" y="${fmt(printRect.y)}" width="${fmt(printRect.width)}" height="${fmt(printRect.height)}">` +
-        `<rect width="${fmt(printRect.width)}" height="${fmt(printRect.height)}" fill="${paper}"/>` +
-        imageElement(image, { x: 0, y: 0, width: printRect.width, height: printRect.height }) +
-        `</pattern>`,
+      el('pattern', { id: `${id}-print`, patternUnits: 'userSpaceOnUse', ...rectAttrs }, [
+        el('rect', { width: rectAttrs.width, height: rectAttrs.height, fill: paper }),
+        imageElement(image, { x: 0, y: 0, width: printRect.width, height: printRect.height }),
+      ]),
     );
   } else if (image) {
     defs.push(
-      `<clipPath id="${id}-outline"><path d="${outline}"/></clipPath>` +
-        `<clipPath id="${id}-area"><rect x="${fmt(printRect.x)}" y="${fmt(printRect.y)}" width="${fmt(printRect.width)}" height="${fmt(printRect.height)}"/></clipPath>`,
+      el('clipPath', { id: `${id}-outline` }, [el('path', { d: outline })]),
+      el('clipPath', { id: `${id}-area` }, [el('rect', rectAttrs)]),
     );
-    print =
-      `<g clip-path="url(#${id}-outline)"><g clip-path="url(#${id}-area)">` +
-      imageElement(image, printRect) +
-      `</g></g>`;
+    print.push(
+      el('g', { 'clip-path': `url(#${id}-outline)` }, [
+        el('g', { 'clip-path': `url(#${id}-area)` }, [imageElement(image, printRect)]),
+      ]),
+    );
   }
 
-  const strokes = fibres
-    .map(
-      (s) =>
-        `<path d="M${fmt(s.from.x)} ${fmt(s.from.y)}Q${fmt(s.control.x)} ${fmt(s.control.y)} ${fmt(s.to.x)} ${fmt(s.to.y)}" stroke-width="${fmt(s.width)}"/>`,
-    )
-    .join('');
+  const strokes = fibres.map((s) =>
+    el('path', {
+      d: `M${fmt(s.from.x)} ${fmt(s.from.y)}Q${fmt(s.control.x)} ${fmt(s.control.y)} ${fmt(s.to.x)} ${fmt(s.to.y)}`,
+      'stroke-width': fmt(s.width),
+    }),
+  );
 
-  return (
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${fmt(-pad)} ${fmt(-pad)} ${fmt(viewWidth)} ${fmt(viewHeight)}" width="${fmt((viewWidth / UNITS_PER_MM) * scale)}" height="${fmt((viewHeight / UNITS_PER_MM) * scale)}" role="img">` +
-    `<title>${title}</title>` +
-    (defs.length ? `<defs>${defs.join('')}</defs>` : '') +
-    `<g${shadow ? ` filter="url(#${id}-shadow)"` : ''}>` +
-    `<path d="${outline}" fill="${ink}"/>` +
-    (strokes
-      ? `<g fill="none" stroke="${ink}" stroke-linecap="round" stroke-opacity=".9">${strokes}</g>`
-      : '') +
-    `</g>` +
-    print +
-    `</svg>`
+  return el(
+    'svg',
+    {
+      xmlns: 'http://www.w3.org/2000/svg',
+      viewBox: `${fmt(-pad)} ${fmt(-pad)} ${fmt(viewWidth)} ${fmt(viewHeight)}`,
+      width: fmt((viewWidth / UNITS_PER_MM) * scale),
+      height: fmt((viewHeight / UNITS_PER_MM) * scale),
+      role: 'img',
+    },
+    [
+      el('title', {}, [options.title ?? 'Postage stamp']),
+      ...(defs.length ? [el('defs', {}, defs)] : []),
+      el('g', shadow ? { filter: `url(#${id}-shadow)` } : {}, [
+        el('path', { d: outline, fill: ink }),
+        ...(strokes.length
+          ? [
+              el(
+                'g',
+                { fill: 'none', stroke: ink, 'stroke-linecap': 'round', 'stroke-opacity': '.9' },
+                strokes,
+              ),
+            ]
+          : []),
+      ]),
+      ...print,
+    ],
   );
 }
 
-/** Cover-fits the image over `rect`. Sized explicitly rather than with `slice`, so every renderer agrees. */
-function imageElement(image: StampImage, rect: StampLayout['printRect']): string {
-  const fit = Math.max(rect.width / image.width, rect.height / image.height);
-  const width = image.width * fit;
-  const height = image.height * fit;
-  const x = rect.x + (rect.width - width) / 2;
-  const y = rect.y + (rect.height - height) / 2;
-  return `<image href="${escapeAttr(image.href)}" x="${fmt(x)}" y="${fmt(y)}" width="${fmt(width)}" height="${fmt(height)}" preserveAspectRatio="none"/>`;
+/**
+ * Cover-fits the image over `rect`. With an intrinsic size it is sized
+ * explicitly, so every renderer agrees; without one it falls back to the
+ * renderer's own `slice` fit.
+ */
+function imageElement(image: StampImage, rect: StampLayout['printRect']): SvgNode {
+  const { href, width: iw, height: ih } = image;
+  if (!iw || !ih) {
+    return el('image', {
+      href,
+      x: fmt(rect.x),
+      y: fmt(rect.y),
+      width: fmt(rect.width),
+      height: fmt(rect.height),
+      preserveAspectRatio: 'xMidYMid slice',
+    });
+  }
+  const fit = Math.max(rect.width / iw, rect.height / ih);
+  const width = iw * fit;
+  const height = ih * fit;
+  return el('image', {
+    href,
+    x: fmt(rect.x + (rect.width - width) / 2),
+    y: fmt(rect.y + (rect.height - height) / 2),
+    width: fmt(width),
+    height: fmt(height),
+    preserveAspectRatio: 'none',
+  });
+}
+
+/** Serialises an element tree to markup, escaping text and attribute values. */
+export function serializeSvg(node: SvgNode): string {
+  const attrs = Object.entries(node.attrs)
+    .map(([name, value]) => ` ${name}="${escapeAttr(value)}"`)
+    .join('');
+  if (node.children.length === 0) return `<${node.tag}${attrs}/>`;
+  const inner = node.children
+    .map((child) => (typeof child === 'string' ? escapeText(child) : serializeSvg(child)))
+    .join('');
+  return `<${node.tag}${attrs}>${inner}</${node.tag}>`;
 }
 
 function escapeText(value: string): string {

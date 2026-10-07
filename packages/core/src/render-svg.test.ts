@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { createLayout, renderSvg, stampPath, type StampImage } from './index.js';
+import {
+  createLayout,
+  renderSvg,
+  serializeSvg,
+  stampPath,
+  stampSvgTree,
+  type StampImage,
+} from './index.js';
 
 const IMAGE: StampImage = { href: 'data:image/png;base64,AAAA', width: 640, height: 320 };
 
@@ -70,5 +77,23 @@ describe('renderSvg', () => {
     const svg = renderSvg({ seed: 7 }, null);
     expect(svg).not.toContain('<image');
     expect(svg).toContain('fill="#F3EEE2"');
+  });
+
+  it('serialises the same tree that bindings render', () => {
+    for (const config of [{ seed: 1 }, { seed: 4, print: { area: 'bordered' as const } }]) {
+      const tree = stampSvgTree(config, IMAGE, { shadow: true });
+      expect(tree.tag).toBe('svg');
+      expect(serializeSvg(tree)).toBe(renderSvg(config, IMAGE, { shadow: true }));
+    }
+  });
+
+  it('falls back to the renderer’s slice fit when the image has no intrinsic size', () => {
+    const config = { seed: 7, print: { area: 'bordered' as const } };
+    const svg = renderSvg(config, { href: 'peak.jpg' });
+    const { printRect: r } = createLayout(config);
+    const at = (v: number) => String(Math.round(v * 100) / 100);
+    expect(svg).toContain(
+      `<image href="peak.jpg" x="${at(r.x)}" y="${at(r.y)}" width="${at(r.width)}" height="${at(r.height)}" preserveAspectRatio="xMidYMid slice"/>`,
+    );
   });
 });
