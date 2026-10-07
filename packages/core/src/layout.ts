@@ -43,8 +43,10 @@ const CORNER_MODES: readonly CornerMode[] = ['offset', 'hole', 'solid'];
  * the wear slider shifted every later draw and reshuffled the rest of the stamp.
  * The depth now comes from the tooth's stateless hash instead.
  *
- * Misregistration: the print is offset slightly within the stamp, scaled by wear.
- * In bleed mode the print extends past the trim so the offset never shows a gap.
+ * Misregistration: the print is offset within the stamp by
+ * `config.misregistration`, which is 0 by default so the print stays centred. Its
+ * two draws always happen, last, so turning it on reshuffles nothing else. In
+ * bleed mode the print extends past the trim so the offset never shows a gap.
  */
 export function createLayout(
   input: StampConfigInput,
@@ -144,10 +146,11 @@ export function createLayout(
   const bleed = config.print.area === 'bleed';
   const margin = config.print.area === 'bordered' ? mmToUnits(config.print.margin) : 0;
   const reference = bleed ? UNITS_PER_MM : margin;
-  const misregistration = {
-    x: (rng() - 0.5) * 2 * (0.12 + 0.45 * w) * reference,
-    y: (rng() - 0.5) * 2 * (0.12 + 0.45 * w) * reference,
-  };
+  // The prototype scaled this as (0.12 + 0.45 * wear); 0.57 is its reach at wear 1.
+  const reach = 0.57 * config.misregistration * reference;
+  const dx = rng() - 0.5;
+  const dy = rng() - 0.5;
+  const misregistration = reach > 0 ? { x: dx * 2 * reach, y: dy * 2 * reach } : { x: 0, y: 0 };
 
   let printRect: StampLayout['printRect'];
   if (bleed) {
@@ -233,6 +236,7 @@ export function normaliseConfig(input: StampConfigInput): StampConfig {
       corners: corners && CORNER_MODES.includes(corners) ? corners : d.perforation.corners,
     },
     wear: clamp(input.wear, 0, 1, d.wear),
+    misregistration: clamp(input.misregistration, 0, 1, d.misregistration),
     print,
     tears: {
       profiles,
