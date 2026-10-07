@@ -1,0 +1,13 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "ignoreExportsUsedInFile": true,
+  "ignoreBinaries": ["typecheck"],
+  "workspaces": {
+    ".": {
+      "entry": ["scripts/*.ts"]
+    },
+    "packages/react": {
+      "ignoreDependencies": ["react", "@types/react"]
+    }
+  }
+}

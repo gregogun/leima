@@ -7,28 +7,30 @@
   "license": "MIT",
   "packageManager": "pnpm@10.5.2",
   "engines": {
-    "node": ">=20.19"
+    "node": ">=22.18"
   },
   "scripts": {
     "build": "pnpm --filter \"./packages/*\" --recursive build",
     "dev": "pnpm --recursive --parallel dev",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "pnpm --recursive typecheck",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "pnpm format:check && pnpm typecheck && pnpm test",
-    "clean": "pnpm --recursive exec rm -rf dist .turbo node_modules/.cache"
+    "lint": "oxlint --type-aware --max-warnings=0",
+    "types:check": "tsc --pretty --noEmit && pnpm --recursive typecheck",
+    "knip": "knip",
+    "check": "pnpm format:check && pnpm lint && pnpm types:check && pnpm knip && pnpm test",
+    "clean": "pnpm --recursive exec rm -rf dist .turbo node_modules/.cache",
+    "prepare": "lefthook install"
   },
   "devDependencies": {
+    "@types/node": "^26.6.4",
+    "knip": "^6.40.0",
+    "lefthook": "^2.1.17",
+    "oxlint": "^1.87.0",
+    "oxlint-tsgolint": "7.0.2003",
     "prettier": "^3.6.2",
-    "tsup": "^8.5.1",
     "typescript": "^7.0.2",
     "vitest": "^5.0.3"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
   }
 }

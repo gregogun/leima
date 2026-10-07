@@ -132,7 +132,7 @@ client side via WebGL, server side as a post-process on the PNG.
 
 ```sh
 pnpm install
-pnpm check      # format:check + typecheck + test
+pnpm check      # format:check + lint + types:check + knip + test
 pnpm build
 ```
 
