@@ -1,5 +1,4 @@
 export type {
-  CornerArc,
   CornerMode,
   EdgeLayout,
   EdgeSide,
@@ -10,6 +9,7 @@ export type {
   ProfilePoint,
   RenderOptions,
   StampConfig,
+  StampConfigInput,
   StampImage,
   StampLayout,
   StampPath,
@@ -32,15 +32,16 @@ export {
   roundCoord,
 } from './units.js';
 
-export { hash2, hashRange, mulberry32, type Prng } from './prng.js';
+export { hash2, hashRange, hashString, mulberry32, type Prng } from './prng.js';
 export { valueNoise1d } from './noise.js';
 
-export { createLayout, normaliseConfig } from './layout.js';
+export { BLEED_OVERSHOOT, createLayout, edgePoint, normaliseConfig } from './layout.js';
 export { TOOTH_SAMPLE_STEP, stampPath, toothOffset } from './path.js';
-export { BLEED_OVERSHOOT, renderSvg } from './render-svg.js';
+export { renderSvg } from './render-svg.js';
 
 export {
   CLEAN,
+  DEFAULT_TEAR_LIBRARY,
   FRAYED,
   LEAN,
   NIBBLE,
