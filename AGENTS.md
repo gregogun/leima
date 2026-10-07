@@ -1,6 +1,6 @@
 leima generates realistic perforated postage stamps from a seeded config, as a TypeScript library with React bindings and server rendering.
 
-This is a TypeScript repo and uses pnpm as package manager. It is a pnpm workspace: `@leima/core` (pure, zero runtime dependencies), `@leima/react` and `@leima/server` under `packages/`, and `apps/lab`, the internal visual bench (Vite, `pnpm --filter @leima/lab dev`). `apps/web`, the editor, comes later.
+This is a TypeScript repo and uses pnpm as package manager. It is a pnpm workspace: `@leima/core` (pure, zero runtime dependencies), `@leima/react` and `@leima/server` under `packages/`, and `apps/lab`, the internal visual bench (Vite, `pnpm --filter @leima/lab dev`). `apps/web` is the editor (Next.js, `pnpm --filter @leima/web dev`), on Leva controls until a custom UI replaces them.
 
 The lab aliases `@leima/core` to its source, so it shows core changes live without a build. `apps/lab/src/expected-digests.json` is the Node side of the Node/browser determinism check: the lab's Vitest suite writes it, and an intended geometry change updates it with `pnpm test -u` alongside the core's snapshots.
 

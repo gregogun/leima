@@ -1,9 +1,9 @@
 # apps
 
-| App   | Step | Stack   | Job                                                         |
-| ----- | ---- | ------- | ----------------------------------------------------------- |
-| `lab` | 3    | Vite    | Internal visual bench. Not user-facing.                     |
-| `web` | 5    | Next.js | Editor, docs and landing page; serves share-preview images. |
+| App   | Step | Stack   | Job                                                          |
+| ----- | ---- | ------- | ------------------------------------------------------------ |
+| `lab` | 3    | Vite    | Internal visual bench. Not user-facing.                      |
+| `web` | 5    | Next.js | The editor today; later docs, landing page and share images. |
 
 ## lab
 
@@ -27,3 +27,17 @@ the browser produces the same path and SVG bytes as Node. Its reference is
 waits for the server package (v1.1).
 
 The view state lives in the URL hash, so any grid or inspected stamp can be linked.
+
+## web
+
+```sh
+pnpm --filter @leima/web dev   # http://localhost:3100
+```
+
+The editor, in its Leva phase: every setting is a Leva control while we find settings
+that look right, with SVG and PNG export and a "Copy config" button to capture them. A
+custom UI (Zustand, possibly with nuqs for URL state) replaces the panel once the settings
+settle. Like the lab, it aliases the workspace packages to source.
+
+`apps/web/AGENTS.md` is written by `next dev`; keep it committed so it does not show up
+as a change.
