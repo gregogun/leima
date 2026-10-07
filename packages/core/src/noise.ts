@@ -1,9 +1,14 @@
-import { notImplemented } from './internal/not-implemented.js';
+import { hash2 } from './prng.js';
 
 /**
- * Value noise for fine roughness along a tooth. A few lines, no runtime
- * dependency. Must be a pure function of its arguments.
+ * Value noise for fine roughness along a tooth, in `[-1, 1]`. Smoothstep
+ * interpolation between hashed lattice values; a pure function of its arguments.
  */
-export function valueNoise1d(_x: number, _seed: number): number {
-  notImplemented('valueNoise1d');
+export function valueNoise1d(x: number, seed: number): number {
+  const i = Math.floor(x);
+  const f = x - i;
+  const u = f * f * (3 - 2 * f);
+  const a = hash2(i, seed) * 2 - 1;
+  const b = hash2(i + 1, seed) * 2 - 1;
+  return a + (b - a) * u;
 }

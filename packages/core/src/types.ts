@@ -34,7 +34,10 @@ export type StampConfig = {
   /** `bordered` carries a paper margin in mm; `bleed` runs the print into the perforations. */
   print: PrintArea;
   tears: {
-    /** Weight per profile key. 0 turns a profile off. */
+    /**
+     * Weight per profile name, 0..1. 0 turns a profile off and 1 is full; a
+     * name left out is off. See `pickProfile` for why weights stop at 1.
+     */
     profiles: Record<string, number>;
     /** Fibre strand density, 0..1. */
     fibres: number;
@@ -45,8 +48,22 @@ export type StampConfig = {
   paper?: string;
 };
 
-/** A partial config. Presets ("mint", "lightly worn", "well travelled") are just these. */
-export type StampPreset = Partial<StampConfig>;
+/**
+ * A config with any field left out, at any depth. `normaliseConfig` fills the
+ * gaps from the defaults. Presets ("mint", "lightly worn", "well travelled") are
+ * just these.
+ */
+export type StampConfigInput = {
+  seed?: number;
+  size?: Partial<StampConfig['size']>;
+  perforation?: Partial<StampConfig['perforation']>;
+  wear?: number;
+  print?: PrintArea | { area: 'bordered'; margin?: number };
+  tears?: Partial<StampConfig['tears']>;
+  paper?: string;
+};
+
+export type StampPreset = StampConfigInput;
 
 // --- Tear library -----------------------------------------------------------
 
@@ -62,6 +79,7 @@ export type TearProfile = {
   readonly points: readonly ProfilePoint[];
 };
 
+/** Profiles by name, in registration order. */
 export type TearLibrary = ReadonlyMap<string, TearProfile>;
 
 // --- Layout -----------------------------------------------------------------
@@ -71,31 +89,36 @@ export type Point = { x: number; y: number };
 /** Edges are walked clockwise from the top-left corner. */
 export type EdgeSide = 'top' | 'right' | 'bottom' | 'left';
 
+/**
+ * A punched hole. Positions are edge-local: `along` the edge from its start
+ * corner, and `perp` towards the inside of the stamp.
+ */
 export type Hole = {
-  side: EdgeSide;
-  /** Jittered centre, in stamp units. */
-  center: Point;
+  /** Jittered position along the edge, in stamp units. */
+  along: number;
+  /** Jittered offset of the centre from the edge line, inward positive. */
+  perp: number;
   /** Jittered radius, in stamp units. */
   radius: number;
-  /** True for the single hole shared by two edges in `hole` corner mode. */
-  shared: boolean;
+  /** The same centre in stamp coordinates, for overlays. */
+  center: Point;
 };
 
+/** The torn paper between two holes (or a hole and a corner). */
 export type Tooth = {
-  side: EdgeSide;
-  /** Where the tooth leaves the previous hole arc. */
-  start: Point;
-  /** Where the tooth meets the next hole arc. */
-  end: Point;
-  /** Outward normal for this edge, `(-dy, dx)`. */
-  normal: Point;
-  /** Key into the tear library. */
-  profile: string;
+  /** Where the tooth leaves the previous hole arc, along the edge. */
+  from: number;
+  /** Where the tooth meets the next hole arc, along the edge. */
+  to: number;
+  /** Name in the tear library, or `null` when every profile is off. */
+  profile: string | null;
+  /** Read the profile from u = 1 back to u = 0. */
   flip: boolean;
+  /** Negate the profile's offset. */
   invert: boolean;
   /** Pulled-perf depth in stamp units. 0 for most teeth; interior teeth only. */
   pull: number;
-  /** Decides whether this tooth grows fibres, and how many. */
+  /** Decides whether this tooth grows fibres. */
   fibreRoll: number;
   /**
    * Seed for stateless per-tooth detail. Hashed with an index rather than drawn
@@ -104,36 +127,42 @@ export type Tooth = {
   hash: number;
 };
 
-/** The quarter-circle notch cut at a corner in `hole` mode. */
-export type CornerArc = {
-  center: Point;
-  radius: number;
-};
-
 export type EdgeLayout = {
   side: EdgeSide;
-  from: Point;
-  to: Point;
+  /** The corner this edge starts at. */
+  origin: Point;
+  /** Unit vector along the edge. */
+  direction: Point;
+  /** Unit inward normal, `(-dy, dx)`. */
+  inward: Point;
   /** Length in stamp units. */
   length: number;
-  /** Whole number of holes on this edge. */
-  holeCount: number;
-  /** `length / holeCount`; pitch snaps per edge so corners line up. */
+  /** `length / round(length / pitch)`; pitch snaps per edge so corners line up. */
   step: number;
+  holes: readonly Hole[];
+  /** One more than `holes`: a tooth on each side of every hole. */
+  teeth: readonly Tooth[];
+  /**
+   * Radius of the shared corner hole at the start and end of this edge, in
+   * `hole` corner mode. 0 otherwise.
+   */
+  cornerStart: number;
+  cornerEnd: number;
+  /** Seed for the fine roughness noise along this edge. */
+  noiseSeed: number;
 };
 
 export type StampLayout = {
   /** The config this layout came from, normalised and defaulted. */
   config: StampConfig;
+  /** The tear library the teeth were picked from. */
+  library: TearLibrary;
   /** Stamp size in stamp units. */
   size: { width: number; height: number };
   /** Nominal pitch in stamp units, before the per-edge snap. */
   pitch: number;
+  /** Clockwise from the top-left corner: top, right, bottom, left. */
   edges: readonly EdgeLayout[];
-  holes: readonly Hole[];
-  teeth: readonly Tooth[];
-  /** `hole` corner mode only; empty otherwise. */
-  corners: readonly CornerArc[];
   /**
    * Print offset within the stamp, scaled by wear. In bleed mode the print
    * extends past the trim so the offset never shows a gap.
@@ -156,7 +185,7 @@ export type FibreStroke = {
 export type StampPath = {
   /** The closed outline: teeth and hole arcs as one path. */
   outline: string;
-  /** Tooth segments alone, for debug overlays and profile authoring. */
+  /** Tooth segments alone, one subpath each, for debug overlays and profile authoring. */
   teeth: string;
   fibres: readonly FibreStroke[];
 };
@@ -183,4 +212,13 @@ export type RenderOptions = {
    * will not want it.
    */
   shadow?: boolean;
+  /** Profiles to pick teeth from. Defaults to the six starters. */
+  library?: TearLibrary;
+  /**
+   * Prefix for the SVG's internal ids, which must be unique per document.
+   * Defaults to a hash of the stamp, so two different stamps never collide.
+   */
+  idPrefix?: string;
+  /** Accessible name. Defaults to "Postage stamp". */
+  title?: string;
 };
