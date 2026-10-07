@@ -14,7 +14,7 @@ describe('<Stamp>', () => {
       [{ seed: 7 }, IMAGE],
       [{ seed: 3, wear: 1, perforation: { corners: 'hole' } }, IMAGE],
       [{ seed: 12, print: { area: 'bordered', margin: 2 }, paper: '#fff8e7' }, IMAGE],
-      [{ seed: 5, misregistration: 1, perforation: { corners: 'solid' } }, null],
+      [{ seed: 5, wear: 0.9, perforation: { corners: 'solid' } }, null],
     ];
     for (const [config, image] of cases) {
       const markup = renderToStaticMarkup(<Stamp config={config} image={image} />);

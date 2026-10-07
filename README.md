@@ -22,9 +22,8 @@ Physical rules the geometry encodes:
 - Punched holes are clean; torn teeth are rough. Tear profiles and roughness apply only
   to the tooth segments between holes, never to hole arcs.
 - Pitch snaps per edge to a whole number of holes, so corners line up.
-- The print is centred. Misregistration, an offset within the stamp, is an opt-in
-  control and off by default. In bleed mode the print extends past the trim so an
-  offset never shows a gap.
+- The print is always centred. In bleed mode it extends past the trim, so protruding
+  tears and pulled teeth still carry ink.
 
 ## Packages
 
@@ -52,7 +51,6 @@ type StampConfig = {
     corners: 'offset' | 'hole' | 'solid';
   };
   wear: number;       // 0..1
-  misregistration: number; // 0..1, 0 = centred
   print: { area: 'bleed' } | { area: 'bordered'; margin: number }; // mm
   tears: {
     profiles: Record<string, number>; // weight per profile, 0 = off

@@ -39,7 +39,7 @@ export function renderSvg(
  * means they cannot drift apart. Attribute values are raw; serialisers escape.
  *
  * Bleed: a `<pattern>` holding the image (cover-fit over the print rect, which
- * extends past the trim by `0.45 * pitch` plus the misregistration offset), and
+ * extends past the trim by `0.45 * pitch`), and
  * the stamp path filled with that pattern. Fibre strokes use the same pattern.
  * One path, one fill, no clip seam — clipping an image over a paper-coloured
  * shape with the same outline left a light halo from double anti-aliasing.

@@ -13,9 +13,9 @@ import type {
   TearLibrary,
   Tooth,
 } from './types.ts';
-import { UNITS_PER_MM, mmToUnits, pitchUnits } from './units.ts';
+import { mmToUnits, pitchUnits } from './units.ts';
 
-/** Bleed overshoot as a share of the pitch, before misregistration is added. */
+/** How far a bleed print extends past the trim, as a share of the pitch. */
 export const BLEED_OVERSHOOT = 0.45;
 
 const CORNER_MODES: readonly CornerMode[] = ['offset', 'hole', 'solid'];
@@ -43,10 +43,8 @@ const CORNER_MODES: readonly CornerMode[] = ['offset', 'hole', 'solid'];
  * the wear slider shifted every later draw and reshuffled the rest of the stamp.
  * The depth now comes from the tooth's stateless hash instead.
  *
- * Misregistration: the print is offset within the stamp by
- * `config.misregistration`, which is 0 by default so the print stays centred. Its
- * two draws always happen, last, so turning it on reshuffles nothing else. In
- * bleed mode the print extends past the trim so the offset never shows a gap.
+ * The print is centred. In bleed mode it extends past the trim so protruding
+ * tears and pulled teeth still carry ink.
  */
 export function createLayout(
   input: StampConfigInput,
@@ -143,33 +141,14 @@ export function createLayout(
     return { ...edge, teeth, cornerEnd };
   });
 
-  const bleed = config.print.area === 'bleed';
-  const margin = config.print.area === 'bordered' ? mmToUnits(config.print.margin) : 0;
-  const reference = bleed ? UNITS_PER_MM : margin;
-  // The prototype scaled this as (0.12 + 0.45 * wear); 0.57 is its reach at wear 1.
-  const reach = 0.57 * config.misregistration * reference;
-  const dx = rng() - 0.5;
-  const dy = rng() - 0.5;
-  const misregistration = reach > 0 ? { x: dx * 2 * reach, y: dy * 2 * reach } : { x: 0, y: 0 };
-
   let printRect: StampLayout['printRect'];
-  if (bleed) {
+  if (config.print.area === 'bleed') {
     // Ink runs past the trim so protruding tears and pulled teeth still carry print.
-    const b =
-      BLEED_OVERSHOOT * pitch + Math.max(Math.abs(misregistration.x), Math.abs(misregistration.y));
-    printRect = {
-      x: -b + misregistration.x,
-      y: -b + misregistration.y,
-      width: W + 2 * b,
-      height: H + 2 * b,
-    };
+    const b = BLEED_OVERSHOOT * pitch;
+    printRect = { x: -b, y: -b, width: W + 2 * b, height: H + 2 * b };
   } else {
-    printRect = {
-      x: margin + misregistration.x,
-      y: margin + misregistration.y,
-      width: W - 2 * margin,
-      height: H - 2 * margin,
-    };
+    const margin = mmToUnits(config.print.margin);
+    printRect = { x: margin, y: margin, width: W - 2 * margin, height: H - 2 * margin };
   }
 
   return {
@@ -178,7 +157,6 @@ export function createLayout(
     size: { width: W, height: H },
     pitch,
     edges,
-    misregistration,
     printRect,
   };
 }
@@ -236,7 +214,6 @@ export function normaliseConfig(input: StampConfigInput): StampConfig {
       corners: corners && CORNER_MODES.includes(corners) ? corners : d.perforation.corners,
     },
     wear: clamp(input.wear, 0, 1, d.wear),
-    misregistration: clamp(input.misregistration, 0, 1, d.misregistration),
     print,
     tears: {
       profiles,
