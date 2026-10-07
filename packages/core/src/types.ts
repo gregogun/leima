@@ -225,6 +225,13 @@ export type RenderOptions = {
   /** Profiles to pick teeth from. Defaults to the six starters. */
   library?: TearLibrary;
   /**
+   * Space around the trim in mm, on every side. Defaults to room for torn teeth
+   * and fibres (0.6 x pitch), plus 0.6 mm when the shadow is on, so the SVG box
+   * changes with gauge and shadow. Set it to keep the stamp the same size within
+   * the box whatever those are.
+   */
+  padding?: number;
+  /**
    * Prefix for the SVG's internal ids, which must be unique per document.
    * Defaults to a hash of the stamp, so two different stamps never collide.
    */

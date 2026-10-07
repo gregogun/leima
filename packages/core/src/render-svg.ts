@@ -4,7 +4,7 @@ import { stampPath } from './path.ts';
 import { hashString } from './prng.ts';
 import { DEFAULT_TEAR_LIBRARY } from './tears/index.ts';
 import type { RenderOptions, StampConfigInput, StampImage, StampLayout, SvgNode } from './types.ts';
-import { UNITS_PER_MM, roundCoord } from './units.ts';
+import { UNITS_PER_MM, mmToUnits, roundCoord } from './units.ts';
 
 /**
  * Space around the trim for torn teeth and fibres, as a share of the pitch, plus
@@ -74,7 +74,10 @@ export function stampSvgTree(
     options.idPrefix ??
     `leima-${hashString(`${outline}|${image?.href ?? ''}|${paper}|${layout.config.print.area}`).toString(36)}`;
 
-  const pad = VIEW_PADDING * pitch + (shadow ? SHADOW_PADDING : 0);
+  const pad =
+    options.padding === undefined
+      ? VIEW_PADDING * pitch + (shadow ? SHADOW_PADDING : 0)
+      : mmToUnits(Math.max(0, options.padding));
   const viewWidth = size.width + 2 * pad;
   const viewHeight = size.height + 2 * pad;
   const rectAttrs = {
