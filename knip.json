@@ -5,9 +5,6 @@
   "workspaces": {
     ".": {
       "entry": ["scripts/*.ts"]
-    },
-    "packages/react": {
-      "ignoreDependencies": ["react", "@types/react"]
     }
   }
 }

@@ -203,9 +203,24 @@ export type StampPath = {
 export type StampImage = {
   /** A data URI or an absolute URL the *consumer* is responsible for resolving. */
   href: string;
-  /** Intrinsic size, needed for cover fit. */
-  width: number;
-  height: number;
+  /**
+   * Intrinsic size. With it, the cover fit is computed exactly, so every renderer
+   * agrees. Without it, the image falls back to the renderer's own
+   * `preserveAspectRatio="xMidYMid slice"`, which Satori may not honour.
+   */
+  width?: number;
+  height?: number;
+};
+
+/**
+ * An SVG element as plain data: the stamp's markup before it becomes a string or
+ * a framework's elements. Attribute names are SVG's own (`stroke-width`, not
+ * `strokeWidth`) and values are unescaped.
+ */
+export type SvgNode = {
+  tag: string;
+  attrs: Readonly<Record<string, string>>;
+  children: readonly (SvgNode | string)[];
 };
 
 export type RenderOptions = {

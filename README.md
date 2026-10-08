@@ -65,10 +65,11 @@ type StampConfig = {
 // core (no DOM)
 createLayout(config): StampLayout
 stampPath(layout): { outline: string; teeth: string; fibres: FibreStroke[] }
-renderSvg(config, image): string
+renderSvg(config, image, options?): string
+stampSvgTree(config, image, options?): SvgNode // what renderSvg serialises
 
-// react
-<Stamp config={config} image={src} />
+// react: the same tree as real elements; server-renders, no DOM hooks
+<Stamp config={config} image={src} title="…" className="…" />
 
 // server (v1.1)
 renderPng(config, image, { scale }): Promise<Uint8Array>
@@ -79,6 +80,9 @@ The config is plain JSON-serialisable data: it round-trips through a URL and ren
 identically on client and server. Presets ("mint", "lightly worn", "well travelled") are
 just partial configs. Profiles ship as a default library; users can register their own as
 point arrays.
+
+An image is `{ href, width, height }`, or for `<Stamp>` a bare URL. With its size, the
+core computes the cover fit exactly; without, the renderer's own `slice` fit applies.
 
 ## Scope
 

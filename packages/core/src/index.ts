@@ -14,6 +14,7 @@ export type {
   StampLayout,
   StampPath,
   StampPreset,
+  SvgNode,
   TearLibrary,
   TearProfile,
   Tooth,
@@ -37,7 +38,7 @@ export { valueNoise1d } from './noise.js';
 
 export { BLEED_OVERSHOOT, createLayout, edgePoint, normaliseConfig } from './layout.js';
 export { TOOTH_SAMPLE_STEP, stampPath, toothOffset } from './path.js';
-export { renderSvg } from './render-svg.js';
+export { renderSvg, serializeSvg, stampSvgTree } from './render-svg.js';
 
 export {
   CLEAN,
