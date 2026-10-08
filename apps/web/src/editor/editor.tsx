@@ -33,7 +33,7 @@ const unit = { min: 0, max: 1, step: 0.01 };
 const STAGE_PADDING_MM = 2.5;
 
 export function Editor() {
-  const [image, setImage] = useState<StampImage | null>(DEMO_IMAGE);
+  const [upload, setUpload] = useState<StampImage | null>(null);
   // Buttons read the latest state when clicked, not when the schema was built.
   const latest = useRef<{
     config: StampConfigInput;
@@ -45,6 +45,8 @@ export function Editor() {
   const [v, set] = useControls(() => ({
     Stamp: folder({
       seed: { value: 7, min: 1, max: 99999, step: 1 },
+      // Leva calls this on click, long after `set` is initialised.
+      // oxlint-disable-next-line react/immutability
       'new seed': button(() => set({ seed: 1 + Math.floor(Math.random() * 99999) })),
       shape: { value: 'portrait', options: SHAPE_OPTIONS },
       width: {
@@ -130,15 +132,15 @@ export function Editor() {
     let live = true;
     if (v.image) {
       loadImage(v.image)
-        .then((loaded) => live && setImage(loaded))
+        .then((loaded) => live && setUpload(loaded))
         .catch((error: unknown) => console.error('[leima] could not load image', error));
-    } else {
-      setImage(DEMO_IMAGE);
     }
     return () => {
       live = false;
     };
   }, [v.image]);
+  // Clearing the control falls back to the demo without a state round trip.
+  const image = (v.image && upload) || DEMO_IMAGE;
 
   const config: StampConfigInput = {
     seed: v.seed,
@@ -164,7 +166,11 @@ export function Editor() {
     },
     paper: v.paper,
   };
-  latest.current = { config, image, pxPerMm: v['PNG px/mm'], shadow: v.shadow };
+  const pxPerMm = v['PNG px/mm'];
+  // Refs are written after commit, never during render.
+  useEffect(() => {
+    latest.current = { config, image, pxPerMm, shadow: v.shadow };
+  });
 
   return (
     <main className="stage" style={{ background: v.background }}>
