@@ -26,11 +26,14 @@ export type StampConfig = {
     holeSize: number;
     corners: CornerMode;
   };
-  /**
-   * One 0..1 control for tear depth, hole jitter, pulled-perf chance and print
-   * misregistration.
-   */
+  /** One 0..1 control for tear depth, hole jitter and pulled-perf chance. */
   wear: number;
+  /**
+   * How far the print may sit off-centre within the stamp, 0..1. Off by default
+   * so the print is always centred; at 1 the offset reaches 0.57 mm in bleed, or
+   * 57% of the margin when bordered. The direction comes from the seed.
+   */
+  misregistration: number;
   /** `bordered` carries a paper margin in mm; `bleed` runs the print into the perforations. */
   print: PrintArea;
   tears: {
@@ -58,6 +61,7 @@ export type StampConfigInput = {
   size?: Partial<StampConfig['size']>;
   perforation?: Partial<StampConfig['perforation']>;
   wear?: number;
+  misregistration?: number;
   print?: PrintArea | { area: 'bordered'; margin?: number };
   tears?: Partial<StampConfig['tears']>;
   paper?: string;
@@ -164,7 +168,7 @@ export type StampLayout = {
   /** Clockwise from the top-left corner: top, right, bottom, left. */
   edges: readonly EdgeLayout[];
   /**
-   * Print offset within the stamp, scaled by wear. In bleed mode the print
+   * Print offset within the stamp, scaled by `config.misregistration`; 0 by default. In bleed mode the print
    * extends past the trim so the offset never shows a gap.
    */
   misregistration: Point;

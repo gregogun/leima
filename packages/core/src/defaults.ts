@@ -10,6 +10,7 @@ export const DEFAULT_CONFIG: StampConfig = {
     corners: 'offset',
   },
   wear: 0.38,
+  misregistration: 0,
   print: { area: 'bleed' },
   tears: {
     profiles: { clean: 1, step: 1, nibble: 1, spur: 1, lean: 1, frayed: 1 },

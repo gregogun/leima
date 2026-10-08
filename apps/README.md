@@ -1,12 +1,15 @@
 # apps
 
-Both apps arrive later in the build order; this directory is a placeholder so the
-workspace glob (`apps/*`) is already in place.
-
 | App   | Step | Stack   | Job                                                         |
 | ----- | ---- | ------- | ----------------------------------------------------------- |
 | `lab` | 3    | Vite    | Internal visual bench. Not user-facing.                     |
 | `web` | 5    | Next.js | Editor, docs and landing page; serves share-preview images. |
+
+## lab
+
+```sh
+pnpm --filter @leima/lab dev
+```
 
 `lab` has four jobs and only those four:
 
@@ -16,3 +19,11 @@ workspace glob (`apps/*`) is already in place.
 4. Browser SVG vs server PNG parity.
 
 It is not a second editor, and it does not compare approaches A, B and C.
+
+Built so far: jobs 1 and 2 (the Seeds, Gauge × wear and Corners views; click any stamp
+to inspect it at 1× and 4× with its layout stats), plus a Determinism view that checks
+the browser produces the same path and SVG bytes as Node. Its reference is
+`src/expected-digests.json`, written by the lab's Vitest suite. Job 3 is next; job 4
+waits for the server package (v1.1).
+
+The view state lives in the URL hash, so any grid or inspected stamp can be linked.
