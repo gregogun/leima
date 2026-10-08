@@ -6,7 +6,7 @@ import {
   type CornerMode,
   type StampConfigInput,
 } from '@leima/core';
-import { calibrationImage } from './test-image.js';
+import { calibrationImage } from './test-image.ts';
 
 /**
  * Acceptance check: the same seed and config give a byte-identical path string

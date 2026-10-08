@@ -8,7 +8,7 @@ import {
   type StampImage,
   type StampLayout,
 } from '@leima/core';
-import { computeDigests } from './digests.js';
+import { computeDigests } from './digests.ts';
 import expected from './expected-digests.json';
 import {
   LAYERS,
@@ -17,8 +17,8 @@ import {
   overlayMarkup,
   profileColour,
   type Layer,
-} from './overlays.js';
-import { calibrationImage } from './test-image.js';
+} from './overlays.ts';
+import { calibrationImage } from './test-image.ts';
 
 // --- State, mirrored to the URL hash so a view can be linked ----------------
 
@@ -298,7 +298,7 @@ function renderFocus(): void {
     for (const t of e.teeth)
       tally.set(t.profile ?? 'none', (tally.get(t.profile ?? 'none') ?? 0) + 1);
   }
-  const { misregistration: m, printRect: r } = layout;
+  const { printRect: r } = layout;
   focusPanel.innerHTML =
     `<div class="focus-head"><h2>Inspect</h2><code>${escapeHtml(JSON.stringify(layout.config))}</code><button type="button" data-close>Close</button></div>` +
     `<div class="focus-body">` +
@@ -308,7 +308,6 @@ function renderFocus(): void {
     `<table><thead><tr><th>edge</th><th>holes</th><th>teeth</th><th>step mm</th><th>pulled</th><th>corner r mm</th></tr></thead><tbody>${rows}</tbody></table>` +
     `<dl>` +
     `<dt>pitch</dt><dd>${mm(layout.pitch)} mm</dd>` +
-    `<dt>misregistration</dt><dd>${mm(m.x)}, ${mm(m.y)} mm</dd>` +
     `<dt>print rect</dt><dd>${mm(r.x)}, ${mm(r.y)} · ${mm(r.width)} × ${mm(r.height)} mm</dd>` +
     `<dt>fibres</dt><dd>${fibres.length} strokes</dd>` +
     `<dt>profiles</dt><dd>${[...tally].map(([p, c]) => `${p} ${c}`).join(' · ')}</dd>` +

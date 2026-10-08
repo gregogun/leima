@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { computeDigests } from './digests.js';
+import { computeDigests } from './digests.ts';
 
 it('writes the Node digests the lab compares the browser against', async () => {
   // Regenerate with `pnpm test -u` after an intended geometry change; the core's

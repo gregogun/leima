@@ -28,12 +28,6 @@ export type StampConfig = {
   };
   /** One 0..1 control for tear depth, hole jitter and pulled-perf chance. */
   wear: number;
-  /**
-   * How far the print may sit off-centre within the stamp, 0..1. Off by default
-   * so the print is always centred; at 1 the offset reaches 0.57 mm in bleed, or
-   * 57% of the margin when bordered. The direction comes from the seed.
-   */
-  misregistration: number;
   /** `bordered` carries a paper margin in mm; `bleed` runs the print into the perforations. */
   print: PrintArea;
   tears: {
@@ -61,7 +55,6 @@ export type StampConfigInput = {
   size?: Partial<StampConfig['size']>;
   perforation?: Partial<StampConfig['perforation']>;
   wear?: number;
-  misregistration?: number;
   print?: PrintArea | { area: 'bordered'; margin?: number };
   tears?: Partial<StampConfig['tears']>;
   paper?: string;
@@ -168,11 +161,9 @@ export type StampLayout = {
   /** Clockwise from the top-left corner: top, right, bottom, left. */
   edges: readonly EdgeLayout[];
   /**
-   * Print offset within the stamp, scaled by `config.misregistration`; 0 by default. In bleed mode the print
-   * extends past the trim so the offset never shows a gap.
+   * The rect the image fills, in stamp units, centred on the stamp. In bleed mode it
+   * extends past the trim by `0.45 * pitch`.
    */
-  misregistration: Point;
-  /** The rect the image fills, in stamp units, offset included. */
   printRect: { x: number; y: number; width: number; height: number };
 };
 
@@ -233,6 +224,13 @@ export type RenderOptions = {
   shadow?: boolean;
   /** Profiles to pick teeth from. Defaults to the six starters. */
   library?: TearLibrary;
+  /**
+   * Space around the trim in mm, on every side. Defaults to room for torn teeth
+   * and fibres (0.6 x pitch), plus 0.6 mm when the shadow is on, so the SVG box
+   * changes with gauge and shadow. Set it to keep the stamp the same size within
+   * the box whatever those are.
+   */
+  padding?: number;
   /**
    * Prefix for the SVG's internal ids, which must be unique per document.
    * Defaults to a hash of the stamp, so two different stamps never collide.

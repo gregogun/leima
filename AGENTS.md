@@ -1,6 +1,6 @@
 leima generates realistic perforated postage stamps from a seeded config, as a TypeScript library with React bindings and server rendering.
 
-This is a TypeScript repo and uses pnpm as package manager. It is a pnpm workspace: `@leima/core` (pure, zero runtime dependencies), `@leima/react` and `@leima/server` under `packages/`, and `apps/lab`, the internal visual bench (Vite, `pnpm --filter @leima/lab dev`). `apps/web`, the editor, comes later.
+This is a TypeScript repo and uses pnpm as package manager. It is a pnpm workspace: `@leima/core` (pure, zero runtime dependencies), `@leima/react` and `@leima/server` under `packages/`, and `apps/lab`, the internal visual bench (Vite, `pnpm --filter @leima/lab dev`). `apps/web` is the editor (Next.js, `pnpm --filter @leima/web dev`), on Leva controls until a custom UI replaces them.
 
 The lab aliases `@leima/core` to its source, so it shows core changes live without a build. `apps/lab/src/expected-digests.json` is the Node side of the Node/browser determinism check: the lab's Vitest suite writes it, and an intended geometry change updates it with `pnpm test -u` alongside the core's snapshots.
 
@@ -27,7 +27,8 @@ oxlint only — there is no ESLint here. `typescript-eslint` refuses to load aga
 - Tear profiles and roughness apply only to the tooth segments between holes, never to hole arcs: punched holes are clean, torn teeth are rough.
 - Every package is `private: true` and the public npm names are not settled. Don't add a publish step.
 - Workspace dependencies use the `workspace:` protocol explicitly; `.npmrc` disables hoisting so a package must declare what it imports.
-- Typechecking resolves workspace packages to source via `paths` in `tsconfig.base.json`, so there is no build ordering to respect. At runtime they resolve through `node_modules` to `dist`.
+- Typechecking resolves workspace packages to source via `paths` in `tsconfig.base.json`, so there is no build ordering to respect. Published consumers resolve through `node_modules` to `dist`; the lab, the editor and the tests alias the packages to source instead.
+- Relative imports name the real file: `./layout.ts`, `./stamp.tsx`, never `./layout.js` or extensionless. Turbopack (the editor) cannot map `.js` to `.ts` the way Vite and tsc do, so this is the one form every tool resolves. `rewriteRelativeImportExtensions` turns them back into `.js` on emit.
 
 ## Commits
 

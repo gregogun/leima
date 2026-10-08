@@ -6,7 +6,7 @@ import {
   stampPath,
   stampSvgTree,
   type StampImage,
-} from './index.js';
+} from './index.ts';
 
 const IMAGE: StampImage = { href: 'data:image/png;base64,AAAA', width: 640, height: 320 };
 
@@ -94,6 +94,21 @@ describe('renderSvg', () => {
     const at = (v: number) => String(Math.round(v * 100) / 100);
     expect(svg).toContain(
       `<image href="peak.jpg" x="${at(r.x)}" y="${at(r.y)}" width="${at(r.width)}" height="${at(r.height)}" preserveAspectRatio="xMidYMid slice"/>`,
+    );
+  });
+
+  it('keeps the box fixed with explicit padding, whatever the shadow or gauge', () => {
+    const box = (svg: string) =>
+      /<svg [^>]*viewBox="([^"]+)" width="([^"]+)" height="([^"]+)"/.exec(svg)?.slice(1);
+    const plain = box(renderSvg({ seed: 7 }, null, { padding: 2.5 }));
+    expect(plain?.[0]).toBe('-25 -25 310 310');
+    expect(box(renderSvg({ seed: 7 }, null, { padding: 2.5, shadow: true }))).toEqual(plain);
+    expect(box(renderSvg({ seed: 7, perforation: { gauge: 9 } }, null, { padding: 2.5 }))).toEqual(
+      plain,
+    );
+    // Without it, the shadow still makes room for itself.
+    expect(box(renderSvg({ seed: 7 }, null, { shadow: true }))).not.toEqual(
+      box(renderSvg({ seed: 7 }, null)),
     );
   });
 });

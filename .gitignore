@@ -20,3 +20,6 @@ out/
 
 # tsup writes this beside a config while loading it; it can survive a crash
 *.bundled_*.mjs
+
+# next
+next-env.d.ts

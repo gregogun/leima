@@ -7,7 +7,7 @@ import {
   toothOffset,
   type CornerMode,
   type StampConfigInput,
-} from './index.js';
+} from './index.ts';
 
 /** Physical rules the geometry encodes, from the brief's acceptance checks. */
 
@@ -58,22 +58,17 @@ describe('layout', () => {
     }
   });
 
-  it('centres the print by default, whatever the seed, wear or corners', () => {
+  it('centres the print, whatever the seed, wear or corners', () => {
     for (let seed = 1; seed <= 20; seed++) {
       for (const wear of [0, 0.38, 1]) {
         for (const corners of CORNERS) {
           for (const print of [{ area: 'bleed' }, { area: 'bordered', margin: 1.8 }] as const) {
-            const {
-              printRect: r,
-              size,
-              misregistration: m,
-            } = createLayout({
+            const { printRect: r, size } = createLayout({
               seed,
               wear,
               perforation: { corners },
               print,
             });
-            expect(m).toEqual({ x: 0, y: 0 });
             expect(r.x + r.width / 2).toBeCloseTo(size.width / 2, 9);
             expect(r.y + r.height / 2).toBeCloseTo(size.height / 2, 9);
           }
@@ -82,32 +77,16 @@ describe('layout', () => {
     }
   });
 
-  it('opts in to misregistration without reshuffling the stamp', () => {
-    const centred = createLayout({ seed: 9, wear: 0.6 });
-    const shifted = createLayout({ seed: 9, wear: 0.6, misregistration: 1 });
-    expect(stampPath(shifted)).toEqual(stampPath(centred));
-    expect(shifted.misregistration).not.toEqual({ x: 0, y: 0 });
+  it('extends a bleed print past the trim by 0.45 pitch', () => {
+    const { printRect: rect, size, pitch } = createLayout({ seed: 2, wear: 1 });
+    expect(rect.x).toBeCloseTo(-0.45 * pitch, 9);
+    expect(rect.width).toBeCloseTo(size.width + 0.9 * pitch, 9);
   });
 
-  it('extends a bleed print past the trim by 0.45 pitch plus the misregistration', () => {
-    const layout = createLayout({ seed: 2, misregistration: 1 });
-    const { printRect: rect, misregistration: m, size, pitch } = layout;
-    const overshoot = 0.45 * pitch;
-    expect(rect.x).toBeLessThanOrEqual(-overshoot + 1e-9);
-    expect(rect.y).toBeLessThanOrEqual(-overshoot + 1e-9);
-    expect(rect.x + rect.width).toBeGreaterThanOrEqual(size.width + overshoot - 1e-9);
-    expect(rect.y + rect.height).toBeGreaterThanOrEqual(size.height + overshoot - 1e-9);
-    expect(Math.hypot(m.x, m.y)).toBeGreaterThan(0);
-  });
-
-  it('insets a bordered print by the margin, offset by the misregistration', () => {
-    const layout = createLayout({
-      seed: 2,
-      misregistration: 0.5,
-      print: { area: 'bordered', margin: 2 },
-    });
-    const { printRect: rect, misregistration: m, size } = layout;
-    expect(rect.x).toBeCloseTo(20 + m.x, 9);
+  it('insets a bordered print by the margin', () => {
+    const layout = createLayout({ seed: 2, print: { area: 'bordered', margin: 2 } });
+    const { printRect: rect, size } = layout;
+    expect(rect.x).toBe(20);
     expect(rect.width).toBeCloseTo(size.width - 40, 9);
   });
 });

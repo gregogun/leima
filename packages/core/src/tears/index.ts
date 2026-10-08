@@ -1,8 +1,8 @@
-import { hash2, hashString } from '../prng.js';
-import type { ProfilePoint, TearLibrary, TearProfile } from '../types.js';
-import { STARTER_PROFILES } from './profiles.js';
+import { hash2, hashString } from '../prng.ts';
+import type { ProfilePoint, TearLibrary, TearProfile } from '../types.ts';
+import { STARTER_PROFILES } from './profiles.ts';
 
-export { STARTER_PROFILES, CLEAN, STEP, NIBBLE, SPUR, LEAN, FRAYED } from './profiles.js';
+export { STARTER_PROFILES, CLEAN, STEP, NIBBLE, SPUR, LEAN, FRAYED } from './profiles.ts';
 
 /**
  * Per-tooth hash indices. Fibres use 1 and 10..49 (see `path.ts`); keep these

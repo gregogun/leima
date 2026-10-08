@@ -3,7 +3,7 @@ import type { StampImage } from '@leima/core';
 /**
  * A calibration card, so the bench needs no binary fixture. A 1 mm grid at the
  * default stamp size, a centre cross and coloured corner blocks make the cover
- * crop and the print misregistration readable at a glance.
+ * crop and the print rect readable at a glance.
  */
 function calibrationSvg(width: number, height: number): string {
   const cell = width / 26;

@@ -1,10 +1,10 @@
-import { DEFAULT_CONFIG } from './defaults.js';
-import { createLayout } from './layout.js';
-import { stampPath } from './path.js';
-import { hashString } from './prng.js';
-import { DEFAULT_TEAR_LIBRARY } from './tears/index.js';
-import type { RenderOptions, StampConfigInput, StampImage, StampLayout, SvgNode } from './types.js';
-import { UNITS_PER_MM, roundCoord } from './units.js';
+import { DEFAULT_CONFIG } from './defaults.ts';
+import { createLayout } from './layout.ts';
+import { stampPath } from './path.ts';
+import { hashString } from './prng.ts';
+import { DEFAULT_TEAR_LIBRARY } from './tears/index.ts';
+import type { RenderOptions, StampConfigInput, StampImage, StampLayout, SvgNode } from './types.ts';
+import { UNITS_PER_MM, mmToUnits, roundCoord } from './units.ts';
 
 /**
  * Space around the trim for torn teeth and fibres, as a share of the pitch, plus
@@ -39,7 +39,7 @@ export function renderSvg(
  * means they cannot drift apart. Attribute values are raw; serialisers escape.
  *
  * Bleed: a `<pattern>` holding the image (cover-fit over the print rect, which
- * extends past the trim by `0.45 * pitch` plus the misregistration offset), and
+ * extends past the trim by `0.45 * pitch`), and
  * the stamp path filled with that pattern. Fibre strokes use the same pattern.
  * One path, one fill, no clip seam — clipping an image over a paper-coloured
  * shape with the same outline left a light halo from double anti-aliasing.
@@ -74,7 +74,10 @@ export function stampSvgTree(
     options.idPrefix ??
     `leima-${hashString(`${outline}|${image?.href ?? ''}|${paper}|${layout.config.print.area}`).toString(36)}`;
 
-  const pad = VIEW_PADDING * pitch + (shadow ? SHADOW_PADDING : 0);
+  const pad =
+    options.padding === undefined
+      ? VIEW_PADDING * pitch + (shadow ? SHADOW_PADDING : 0)
+      : mmToUnits(Math.max(0, options.padding));
   const viewWidth = size.width + 2 * pad;
   const viewHeight = size.height + 2 * pad;
   const rectAttrs = {

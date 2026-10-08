@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createLayout, stampPath } from '../index.js';
+import { createLayout, stampPath } from '../index.ts';
 import {
   DEFAULT_TEAR_LIBRARY,
   STARTER_PROFILES,
@@ -7,7 +7,7 @@ import {
   defineProfile,
   pickProfile,
   sampleProfile,
-} from './index.js';
+} from './index.ts';
 
 const ALL_ON = { clean: 1, step: 1, nibble: 1, spur: 1, lean: 1, frayed: 1 };
 

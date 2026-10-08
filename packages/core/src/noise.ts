@@ -1,4 +1,4 @@
-import { hash2 } from './prng.js';
+import { hash2 } from './prng.ts';
 
 /**
  * Value noise for fine roughness along a tooth, in `[-1, 1]`. Smoothstep
