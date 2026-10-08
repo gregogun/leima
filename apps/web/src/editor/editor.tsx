@@ -6,11 +6,12 @@ import {
   type StampConfigInput,
   type StampImage,
 } from '@leima/core';
-import { Stamp } from '@leima/react';
 import { button, folder, useControls } from 'leva';
 import { useEffect, useRef, useState } from 'react';
 import { DEMO_IMAGE } from './demo-image.ts';
 import { downloadPng, downloadSvg, loadImage } from './export.ts';
+import { VARIANTS, isVariant, prototypeSvg, type Variant } from './hole-variation.prototype.ts';
+import { PrototypeSwitcher } from './prototype-switcher.tsx';
 
 /**
  * The editor, Leva phase: every setting is a Leva control until the settings
@@ -34,6 +35,30 @@ const STAGE_PADDING_MM = 2.5;
 
 export function Editor() {
   const [image, setImage] = useState<StampImage | null>(DEMO_IMAGE);
+  // PROTOTYPE: hole variation, `?variant=` A-D.
+  const [variant, setVariant] = useState<Variant>('B');
+  useEffect(() => {
+    const param = new URLSearchParams(location.search).get('variant');
+    if (isVariant(param)) setVariant(param);
+  }, []);
+  const changeVariant = (key: Variant) => {
+    setVariant(key);
+    const url = new URL(location.href);
+    url.searchParams.set('variant', key);
+    history.replaceState(history.state, '', url);
+  };
+  const proto = useControls('Holes (prototype)', {
+    variation: { value: 1, ...unit, hint: 'the doc’s single control' },
+    wavelength: { value: 5, min: 1, max: 12, step: 0.5, hint: 'noise wavelength, in holes' },
+    independence: { value: 0.2, ...unit, hint: '0 = drift along the edge, 1 = every hole its own' },
+    squash: { value: 0.15, min: 0, max: 0.4, step: 0.01, hint: 'ellipse: max 1 − aspect' },
+    minTilt: { value: 5, min: 0, max: 45, step: 1, hint: 'ellipse: degrees' },
+    maxTilt: { value: 15, min: 0, max: 45, step: 1, hint: 'ellipse: degrees' },
+    wobble: { value: 0.12, min: 0, max: 0.4, step: 0.01, hint: 'noise: deepest dent, share of r' },
+    detail: { value: 5, min: 2, max: 10, step: 1, hint: 'noise: highest harmonic' },
+    falloff: { value: 1, min: 0, max: 2, step: 0.1, hint: 'noise: 1 / k^falloff' },
+    overlay: false,
+  });
   // Buttons read the latest state when clicked, not when the schema was built.
   const latest = useRef<{
     config: StampConfigInput;
@@ -168,15 +193,18 @@ export function Editor() {
 
   return (
     <main className="stage" style={{ background: v.background }}>
-      <Stamp
-        config={config}
-        image={image}
-        // Fixed padding, so the shadow and gauge never resize the stamp on screen.
-        options={{ shadow: v.shadow, padding: STAGE_PADDING_MM }}
-        title="Stamp preview"
-        className="stamp"
+      <div
+        className="stamp-proto"
         style={{ height: `calc(78vh * ${v.zoom})` }}
+        dangerouslySetInnerHTML={{
+          __html: prototypeSvg(variant, proto, config, image, {
+            shadow: v.shadow,
+            padding: STAGE_PADDING_MM,
+            title: 'Stamp preview',
+          }),
+        }}
       />
+      <PrototypeSwitcher variants={VARIANTS} current={variant} onChange={changeVariant} />
     </main>
   );
 }
