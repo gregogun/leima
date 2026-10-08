@@ -25,6 +25,7 @@ import { calibrationImage } from './test-image.ts';
 const VIEWS = {
   seeds: 'Seeds',
   extremes: 'Gauge × wear',
+  holes: 'Hole variation',
   corners: 'Corners',
   determinism: 'Determinism',
 } as const;
@@ -145,6 +146,26 @@ function grid(view: Exclude<ViewName, 'determinism'>): Grid {
       }
     }
     return { columns: 4, note: 'Rows are gauge, columns are wear. Seed 7.', cells };
+  }
+  if (view === 'holes') {
+    const cells: Cell[] = [];
+    for (const amount of [0, 0.25, 0.5, 1]) {
+      for (const wobble of [0, 0.15, 0.3, 0.4]) {
+        cells.push({
+          label: `variation ${amount} · wobble ${wobble}`,
+          config: {
+            ...base,
+            seed: 7,
+            perforation: { ...base.perforation, variation: { amount, wobble } },
+          },
+        });
+      }
+    }
+    return {
+      columns: 4,
+      note: 'Rows are hole variation, columns are wobble. Seed 7; the rest at their defaults.',
+      cells,
+    };
   }
   const variants: [string, StampConfigInput][] = [
     ['square · bleed', { size: { width: 26, height: 26 }, print: { area: 'bleed' } }],

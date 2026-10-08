@@ -1,10 +1,10 @@
-import { edgePoint, hashString, roundCoord, type StampLayout } from '@leima/core';
+import { edgePoint, hashString, holePoint, roundCoord, type StampLayout } from '@leima/core';
 
 export const LAYERS = ['holes', 'spans', 'normals', 'print'] as const;
 export type Layer = (typeof LAYERS)[number];
 
 export const LAYER_LABELS: Record<Layer, string> = {
-  holes: 'Hole centres',
+  holes: 'Holes',
   spans: 'Tooth spans',
   normals: 'Normals',
   print: 'Print / bleed rect',
@@ -65,9 +65,24 @@ export function overlayMarkup(layout: StampLayout, layers: ReadonlySet<Layer>): 
     if (layers.has('holes')) {
       for (const hole of edge.holes) {
         const { x, y } = hole.center;
+        out += `<circle cx="${n(x)}" cy="${n(y)}" r="${n(dot)}" fill="#0ea5e9"/>`;
+        if (!hole.shape) {
+          out += `<circle cx="${n(x)}" cy="${n(y)}" r="${n(hole.radius)}" fill="none" stroke="#0ea5e9" ${HAIR}/>`;
+          continue;
+        }
+        // The varied hole, its bounding circle dashed, and a tick along its tilt.
+        let d = '';
+        for (let s = 0; s < 72; s++) {
+          const p = holePoint(edge, hole, (s / 72) * 2 * Math.PI);
+          d += `${s ? 'L' : 'M'}${n(p.x)} ${n(p.y)}`;
+        }
+        const a = Math.atan2(edge.direction.y, edge.direction.x) + hole.shape.tilt;
+        const tx = Math.cos(a) * hole.radius * 0.8;
+        const ty = Math.sin(a) * hole.radius * 0.8;
         out +=
-          `<circle cx="${n(x)}" cy="${n(y)}" r="${n(hole.radius)}" fill="none" stroke="#0ea5e9" ${HAIR}/>` +
-          `<circle cx="${n(x)}" cy="${n(y)}" r="${n(dot)}" fill="#0ea5e9"/>`;
+          `<circle cx="${n(x)}" cy="${n(y)}" r="${n(hole.radius)}" fill="none" stroke="#0ea5e9" stroke-opacity=".5" stroke-dasharray="3 3" ${HAIR}/>` +
+          `<path d="${d}Z" fill="none" stroke="#0ea5e9" ${HAIR}/>` +
+          `<line x1="${n(x - tx)}" y1="${n(y - ty)}" x2="${n(x + tx)}" y2="${n(y + ty)}" stroke="#f59e0b" ${HAIR}/>`;
       }
       if (edge.cornerStart > 0) {
         // The shared corner hole is centred on the corner itself.
