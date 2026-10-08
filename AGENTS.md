@@ -13,6 +13,7 @@ Run these before calling work done; CI runs the same set, and `pnpm check` runs 
 - `pnpm types:check` (root config plus every package)
 - `pnpm knip` (unused files, exports and dependencies; delete rather than ignore)
 - `pnpm test`
+- `pnpm react-doctor` — React health scan. Treat findings as hypotheses: read the code before fixing or ignoring.
 
 The pre-commit hook (lefthook) formats, lints, typechecks and scans staged files for secrets. Don't bypass it with `--no-verify`; fix the finding.
 
