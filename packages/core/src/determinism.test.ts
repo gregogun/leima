@@ -18,6 +18,29 @@ import {
 
 const CORNERS: readonly CornerMode[] = ['offset', 'hole', 'solid'];
 
+const withoutVariation = (config: StampConfigInput): StampConfigInput => ({
+  ...config,
+  perforation: { ...config.perforation, variation: { amount: 0 } },
+});
+
+function digestMatrix(
+  adjust: (config: StampConfigInput) => StampConfigInput,
+): Record<string, string> {
+  const digests: Record<string, string> = {};
+  for (const seed of [1, 7, 42, 1234]) {
+    for (const corners of CORNERS) {
+      for (const wear of [0, 0.38, 1]) {
+        const { outline } = stampPath(
+          createLayout(adjust({ seed, wear, perforation: { corners } })),
+        );
+        digests[`${seed}/${corners}/${wear}`] =
+          `${hashString(outline).toString(16)}:${outline.length}`;
+      }
+    }
+  }
+  return digests;
+}
+
 describe('determinism', () => {
   it('gives a byte-identical path and SVG for the same seed and config', () => {
     const config = { ...DEFAULT_CONFIG, seed: 1234 };
@@ -29,25 +52,27 @@ describe('determinism', () => {
     // Verified byte-for-byte against the Perforation Lab prototype with one
     // change applied: pulled-perf depth comes from the tooth hash, not the layout
     // PRNG (see `createLayout`). Without that change the prototype matches
-    // up to the first pulled tooth, on the left edge.
+    // up to the first pulled tooth, on the left edge. The prototype had no hole
+    // variation, so parity holds with it off; this snapshot predates it, which
+    // proves `amount: 0` leaves the output byte-identical.
+    const { outline, teeth, fibres } = stampPath(createLayout(withoutVariation(DEFAULT_CONFIG)));
+    expect(outline).toMatchSnapshot();
+    expect({ teeth: hashString(teeth), fibres: fibres.length }).toMatchSnapshot();
+  });
+
+  it('keeps the default stamp, with hole variation, stable', () => {
     const { outline, teeth, fibres } = stampPath(createLayout(DEFAULT_CONFIG));
     expect(outline).toMatchSnapshot();
     expect({ teeth: hashString(teeth), fibres: fibres.length }).toMatchSnapshot();
   });
 
   it('keeps path strings stable across a fixed set of seeds and modes', () => {
-    const digests: Record<string, string> = {};
-    for (const seed of [1, 7, 42, 1234]) {
-      for (const corners of CORNERS) {
-        for (const wear of [0, 0.38, 1]) {
-          const config: StampConfigInput = { seed, wear, perforation: { corners } };
-          const { outline } = stampPath(createLayout(config));
-          digests[`${seed}/${corners}/${wear}`] =
-            `${hashString(outline).toString(16)}:${outline.length}`;
-        }
-      }
-    }
-    expect(digests).toMatchSnapshot();
+    // Without hole variation: these digests predate it and must not move.
+    expect(digestMatrix(withoutVariation)).toMatchSnapshot();
+  });
+
+  it('keeps path strings stable across a fixed set of seeds and modes, with hole variation', () => {
+    expect(digestMatrix((config) => config)).toMatchSnapshot();
   });
 
   it('rounds every path coordinate to at most 2 decimals', () => {

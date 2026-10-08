@@ -1,4 +1,5 @@
 import { DEFAULT_CONFIG, DEFAULT_MARGIN_MM } from './defaults.ts';
+import { holeCrossings, holeRadius, holeShape } from './hole-shape.ts';
 import { hash2, mulberry32 } from './prng.ts';
 import { DEFAULT_TEAR_LIBRARY, HASH_PULL_DEPTH, pickProfile } from './tears/index.ts';
 import type {
@@ -33,6 +34,9 @@ const CORNER_MODES: readonly CornerMode[] = ['offset', 'hole', 'solid'];
  *    - along-edge offset  +/- (0.01 + 0.045w) * step
  *    - perpendicular      +/- (0.02 + 0.1w) * r
  *    - radius             +/- (0.015 + 0.05w) * r
+ *    then, with hole variation on, a shape from `holeShape`: a pure function of
+ *    the hole's index round the perimeter and the seed, so it draws nothing
+ *    from the PRNG. Teeth end where each hole crosses the edge line.
  * 3. One tooth per gap (holes + 1). Each tooth gets a pulled-perf depth
  *    (chance 0.06w, interior teeth only, depth 0.12-0.34 * step), a profile pick,
  *    flip, invert, fibre roll and a hash seed.
@@ -51,7 +55,7 @@ export function createLayout(
   library: TearLibrary = DEFAULT_TEAR_LIBRARY,
 ): StampLayout {
   const config = normaliseConfig(input);
-  const { gauge, holeSize, corners } = config.perforation;
+  const { gauge, holeSize, corners, variation } = config.perforation;
   const w = config.wear;
   const W = mmToUnits(config.size.width);
   const H = mmToUnits(config.size.height);
@@ -71,9 +75,11 @@ export function createLayout(
   ];
 
   type RawTooth = Omit<Tooth, 'from' | 'to'>;
-  const raw = sides.map(([side, origin, end]) => {
-    const length = Math.hypot(end.x - origin.x, end.y - origin.y);
-    const direction = { x: (end.x - origin.x) / length, y: (end.y - origin.y) / length };
+  // Holes counted round the whole perimeter, so hole shapes drift across corners.
+  let holeIndex = 0;
+  const raw = sides.map(([side, origin, target]) => {
+    const length = Math.hypot(target.x - origin.x, target.y - origin.y);
+    const direction = { x: (target.x - origin.x) / length, y: (target.y - origin.y) / length };
     const inward = { x: -direction.y, y: direction.x };
     const n = Math.max(2, Math.round(length / pitch));
     const step = length / n;
@@ -91,10 +97,18 @@ export function createLayout(
       const along = (i + base) * step + (rng() - 0.5) * 2 * (0.01 + 0.045 * w) * step;
       const perp = (rng() - 0.5) * 2 * (0.02 + 0.1 * w) * r0;
       const radius = r0 * (1 + (rng() - 0.5) * 2 * (0.015 + 0.05 * w));
+      const shape = holeShape(variation, radius, holeIndex++, config.seed);
+      const half = halfChord(radius, perp);
+      const { start, end } = shape
+        ? holeCrossings({ radius, perp, shape })
+        : { start: Math.atan2(-perp, -half), end: Math.atan2(-perp, half) };
       holes.push({
         along,
         perp,
         radius,
+        shape,
+        start,
+        end,
         center: {
           x: origin.x + direction.x * along + inward.x * perp,
           y: origin.y + direction.y * along + inward.y * perp,
@@ -134,8 +148,8 @@ export function createLayout(
       const after = holes[j];
       return {
         ...tooth,
-        from: before ? before.along + holeHalfChord(before) : edge.cornerStart,
-        to: after ? after.along - holeHalfChord(after) : edge.length - cornerEnd,
+        from: before ? before.along + crossing(before, 'end') : edge.cornerStart,
+        to: after ? after.along + crossing(after, 'start') : edge.length - cornerEnd,
       };
     });
     return { ...edge, teeth, cornerEnd };
@@ -162,11 +176,21 @@ export function createLayout(
 }
 
 /**
- * Half the chord where a hole crosses its edge line. A tooth stops here and the
- * hole arc takes over.
+ * Where a hole crosses its edge line, along the edge from the hole's centre. A
+ * tooth stops here and the hole takes over.
  */
-function holeHalfChord(hole: Hole): number {
-  return Math.sqrt(Math.max(hole.radius * hole.radius - hole.perp * hole.perp, 1e-4));
+function crossing(hole: Hole, side: 'start' | 'end'): number {
+  if (hole.shape) {
+    const a = hole[side];
+    return holeRadius(hole, a) * Math.cos(a);
+  }
+  // A circle crosses symmetrically: half the chord either side.
+  const half = halfChord(hole.radius, hole.perp);
+  return side === 'start' ? -half : half;
+}
+
+function halfChord(radius: number, perp: number): number {
+  return Math.sqrt(Math.max(radius * radius - perp * perp, 1e-4));
 }
 
 /** A point at `along` the edge, offset `outward` from the edge line. */
@@ -204,6 +228,8 @@ export function normaliseConfig(input: StampConfigInput): StampConfig {
 
   const corners = input.perforation?.corners;
   const seed = input.seed;
+  const v = input.perforation?.variation;
+  const dv = d.perforation.variation;
 
   return {
     seed: typeof seed === 'number' && Number.isFinite(seed) ? Math.floor(seed) : d.seed,
@@ -212,6 +238,17 @@ export function normaliseConfig(input: StampConfigInput): StampConfig {
       gauge: clamp(input.perforation?.gauge, 4, 30, d.perforation.gauge),
       holeSize: clamp(input.perforation?.holeSize, 0.1, 0.9, d.perforation.holeSize),
       corners: corners && CORNER_MODES.includes(corners) ? corners : d.perforation.corners,
+      variation: {
+        amount: clamp(v?.amount, 0, 1, dv.amount),
+        wavelength: clamp(v?.wavelength, 1, 12, dv.wavelength),
+        independence: clamp(v?.independence, 0, 1, dv.independence),
+        squash: clamp(v?.squash, 0, 0.4, dv.squash),
+        minTilt: clamp(v?.minTilt, 0, 45, dv.minTilt),
+        maxTilt: clamp(v?.maxTilt, 0, 45, dv.maxTilt),
+        wobble: clamp(v?.wobble, 0, 0.4, dv.wobble),
+        detail: Math.round(clamp(v?.detail, 2, 10, dv.detail)),
+        falloff: clamp(v?.falloff, 0, 2, dv.falloff),
+      },
     },
     wear: clamp(input.wear, 0, 1, d.wear),
     print,

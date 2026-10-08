@@ -18,7 +18,8 @@ describe('renderSvg', () => {
     expect(svg).not.toContain('clipPath');
     // The outline appears once, filled with the image, never under a paper shape.
     expect(svg.split(`d="${outline}"`)).toHaveLength(2);
-    expect(svg).toMatch(new RegExp(`d="${outline}" fill="url\\(#[\\w-]+-print\\)"`));
+    const after = svg.slice(svg.indexOf(`d="${outline}"`) + `d="${outline}"`.length);
+    expect(after).toMatch(/^ fill="url\(#[\w-]+-print\)"/);
     // Fibres carry ink from the same pattern.
     expect(svg).toMatch(/stroke="url\(#[\w-]+-print\)"/);
   });

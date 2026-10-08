@@ -4,6 +4,8 @@ export type {
   EdgeSide,
   FibreStroke,
   Hole,
+  HoleShape,
+  HoleVariation,
   Point,
   PrintArea,
   ProfilePoint,
@@ -37,7 +39,8 @@ export { hash2, hashRange, hashString, mulberry32, type Prng } from './prng.ts';
 export { valueNoise1d } from './noise.ts';
 
 export { BLEED_OVERSHOOT, createLayout, edgePoint, normaliseConfig } from './layout.ts';
-export { TOOTH_SAMPLE_STEP, stampPath, toothOffset } from './path.ts';
+export { TOOTH_SAMPLE_STEP, holePoint, stampPath, toothOffset } from './path.ts';
+export { holeRadius } from './hole-shape.ts';
 export { renderSvg, serializeSvg, stampSvgTree } from './render-svg.ts';
 
 export {

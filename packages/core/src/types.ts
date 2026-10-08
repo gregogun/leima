@@ -12,6 +12,30 @@ export type CornerMode =
   /** Whole-step spacing with the corner hole left out, giving a wide square corner block. */
   | 'solid';
 
+/**
+ * How far perforation holes stray from clean circles. Real punches read slightly
+ * oval, turned a few degrees and a little dented, and that drifts along the edge.
+ */
+export type HoleVariation = {
+  /** 0..1. 0 keeps every hole a clean circle, exactly as without variation. */
+  amount: number;
+  /** Noise wavelength along the perimeter, in holes, 1..12. */
+  wavelength: number;
+  /** 0..1. 0 drifts smoothly from hole to hole; 1 gives every hole its own look. */
+  independence: number;
+  /** Largest `1 - aspect` of the ellipse, 0..0.4. */
+  squash: number;
+  /** Ellipse tilt magnitude at full amount, in degrees, 0..45. */
+  minTilt: number;
+  maxTilt: number;
+  /** Deepest dent as a share of the radius at full amount, 0..0.4. */
+  wobble: number;
+  /** Highest dent harmonic, 2..10: 2 reads oval, 3 triangular, 4 squarish. */
+  detail: number;
+  /** Higher harmonics fade as 1 / k^falloff, 0..2. */
+  falloff: number;
+};
+
 export type PrintArea = { area: 'bleed' } | { area: 'bordered'; margin: number };
 
 export type StampConfig = {
@@ -25,6 +49,7 @@ export type StampConfig = {
     /** Hole diameter as a share of the pitch, 0..1. */
     holeSize: number;
     corners: CornerMode;
+    variation: HoleVariation;
   };
   /** One 0..1 control for tear depth, hole jitter and pulled-perf chance. */
   wear: number;
@@ -53,7 +78,9 @@ export type StampConfig = {
 export type StampConfigInput = {
   seed?: number;
   size?: Partial<StampConfig['size']>;
-  perforation?: Partial<StampConfig['perforation']>;
+  perforation?: Partial<Omit<StampConfig['perforation'], 'variation'>> & {
+    variation?: Partial<HoleVariation>;
+  };
   wear?: number;
   print?: PrintArea | { area: 'bordered'; margin?: number };
   tears?: Partial<StampConfig['tears']>;
@@ -95,10 +122,36 @@ export type Hole = {
   along: number;
   /** Jittered offset of the centre from the edge line, inward positive. */
   perp: number;
-  /** Jittered radius, in stamp units. */
+  /** Jittered radius, in stamp units. The hole never extends past this circle. */
   radius: number;
+  /** `null` for a clean circle, when hole variation is off. */
+  shape: HoleShape | null;
+  /**
+   * Angles, in the edge's local frame (0 along the edge, PI/2 inward), where the
+   * hole crosses the edge line: `start` where the previous tooth ends, `end`
+   * where the next begins.
+   */
+  start: number;
+  end: number;
   /** The same centre in stamp coordinates, for overlays. */
   center: Point;
+};
+
+/**
+ * A varied hole: an ellipse with semi-axes `radius` and `ry`, tilted from the
+ * edge direction, then dented. See `holeShape`.
+ */
+export type HoleShape = {
+  ry: number;
+  /** Radians from the edge direction. */
+  tilt: number;
+  /** Deepest dent as a share of the ellipse radius. */
+  depth: number;
+  /** `[k, cos weight, sin weight]` per harmonic. */
+  harmonics: readonly (readonly [number, number, number])[];
+  /** Dent normalisation: the largest harmonic sum, and its range over the angle. */
+  high: number;
+  span: number;
 };
 
 /** The torn paper between two holes (or a hole and a corner). */
