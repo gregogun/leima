@@ -18,6 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # react-doctor --scope changed needs the base branch
 
       - uses: pnpm/action-setup@v4
 
@@ -45,3 +47,7 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      - name: React Doctor (changes vs base branch)
+        if: github.event_name == 'pull_request'
+        run: pnpm exec react-doctor . --scope changed --base origin/${{ github.base_ref }} --no-score -y
