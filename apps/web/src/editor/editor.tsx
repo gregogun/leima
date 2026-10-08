@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  DEFAULT_CONFIG,
   normaliseConfig,
   type CornerMode,
   type StampConfigInput,
@@ -29,6 +30,7 @@ const isCorner = (value: string): value is CornerMode => CORNERS.some((c) => c =
 const isShape = (value: string): value is keyof typeof SHAPES => value in SHAPES;
 
 const unit = { min: 0, max: 1, step: 0.01 };
+const HOLES = DEFAULT_CONFIG.perforation.variation;
 /** Room for the widest teeth, fibres and shadow blur at any gauge. */
 const STAGE_PADDING_MM = 2.5;
 
@@ -74,6 +76,21 @@ export function Editor() {
         hint: 'diameter as a share of the pitch',
       },
       corners: { value: 'offset', options: [...CORNERS] },
+    }),
+    Holes: folder({
+      variation: { value: HOLES.amount, ...unit, hint: 'how far holes stray from circles' },
+      wobble: { value: HOLES.wobble, min: 0, max: 0.4, step: 0.01, hint: 'deepest dent' },
+      squash: { value: HOLES.squash, min: 0, max: 0.4, step: 0.01, hint: 'max 1 − aspect' },
+      minTilt: { value: HOLES.minTilt, min: 0, max: 45, step: 1, hint: 'degrees' },
+      maxTilt: { value: HOLES.maxTilt, min: 0, max: 45, step: 1, hint: 'degrees' },
+      wavelength: { value: HOLES.wavelength, min: 1, max: 12, step: 0.5, hint: 'in holes' },
+      independence: {
+        value: HOLES.independence,
+        ...unit,
+        hint: '0 drifts along the edge, 1 every hole its own',
+      },
+      detail: { value: HOLES.detail, min: 2, max: 10, step: 1, hint: 'highest dent harmonic' },
+      falloff: { value: HOLES.falloff, min: 0, max: 2, step: 0.1, hint: '1 / k^falloff' },
     }),
     Wear: folder({
       wear: { value: 0.38, ...unit, hint: 'tear depth, hole jitter, pulled perfs' },
@@ -149,6 +166,17 @@ export function Editor() {
       gauge: v.gauge,
       holeSize: v.holeSize,
       corners: isCorner(v.corners) ? v.corners : 'offset',
+      variation: {
+        amount: v.variation,
+        wavelength: v.wavelength,
+        independence: v.independence,
+        squash: v.squash,
+        minTilt: v.minTilt,
+        maxTilt: v.maxTilt,
+        wobble: v.wobble,
+        detail: v.detail,
+        falloff: v.falloff,
+      },
     },
     wear: v.wear,
     print: v.area === 'bordered' ? { area: 'bordered', margin: v.margin } : { area: 'bleed' },
