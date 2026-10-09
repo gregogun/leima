@@ -1,0 +1,10 @@
+{
+  "$schema": "https://react.doctor/schema/config.json",
+  // No public share links in output. Telemetry is off via --no-telemetry /
+  // --no-score in the package script, hook and CI step.
+  "share": false,
+  "ignore": {
+    // Generated and vendored code: findings there aren't ours to fix.
+    "files": []
+  }
+}

@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["typescript", "import"],
+  "plugins": ["typescript", "import", "react", "jsx-a11y"],
   "categories": {
     "correctness": "warn",
     "suspicious": "warn"
@@ -21,7 +21,8 @@
       {
         "allow": ["**/*.css"]
       }
-    ]
+    ],
+    "react/react-in-jsx-scope": "off"
   },
   "env": {
     "builtin": true,

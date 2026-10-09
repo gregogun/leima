@@ -19,9 +19,10 @@
     "lint": "oxlint --type-aware --max-warnings=0",
     "types:check": "tsc --pretty --noEmit && pnpm --recursive typecheck",
     "knip": "knip",
-    "check": "pnpm format:check && pnpm lint && pnpm types:check && pnpm knip && pnpm test",
+    "check": "pnpm format:check && pnpm lint && pnpm types:check && pnpm knip && pnpm test && pnpm react-doctor",
     "clean": "pnpm --recursive exec rm -rf dist .turbo node_modules/.cache",
-    "prepare": "lefthook install"
+    "prepare": "lefthook install",
+    "react-doctor": "react-doctor . --verbose --no-telemetry"
   },
   "devDependencies": {
     "@types/node": "^26.6.4",
@@ -30,6 +31,7 @@
     "oxlint": "^1.87.0",
     "oxlint-tsgolint": "7.0.2003",
     "prettier": "^3.6.2",
+    "react-doctor": "0.9.17",
     "typescript": "^7.0.2",
     "vitest": "^5.0.3"
   }

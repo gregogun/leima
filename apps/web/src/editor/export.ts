@@ -41,7 +41,9 @@ export async function downloadPng(
 
 /** Reads a picked file into a data URI with its intrinsic size, so the core can cover-fit it exactly. */
 export async function loadImage(src: string): Promise<StampImage> {
-  const blob = await (await fetch(src)).blob();
+  const response = await fetch(src);
+  if (!response.ok) throw new Error(`editor: could not fetch image (${response.status})`);
+  const blob = await response.blob();
   const href = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () =>

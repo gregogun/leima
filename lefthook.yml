@@ -1,6 +1,9 @@
 pre-commit:
   parallel: true
   commands:
+    react-doctor:
+      glob: '**/*.{ts,tsx,js,jsx}'
+      run: pnpm exec react-doctor . --staged --no-score -y
     prettier:
       run: pnpm exec prettier --ignore-unknown --write {staged_files}
       stage_fixed: true
