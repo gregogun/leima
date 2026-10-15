@@ -1,23 +1,40 @@
+import { holeRadius } from './hole-shape.ts';
 import { edgePoint } from './layout.ts';
 import { valueNoise1d } from './noise.ts';
 import { hash2 } from './prng.ts';
 import { sampleProfile } from './tears/index.ts';
-import type { EdgeLayout, FibreStroke, StampLayout, StampPath, Tooth } from './types.ts';
+import type {
+  EdgeLayout,
+  FibreStroke,
+  Hole,
+  Point,
+  StampLayout,
+  StampPath,
+  Tooth,
+} from './types.ts';
 import { roundCoord } from './units.ts';
 
 /** Sample spacing along a tooth, in stamp units. */
 export const TOOTH_SAMPLE_STEP = 0.3;
 
+/**
+ * Sample spacing round a varied hole, in stamp units. Finer than a tooth: the
+ * curve is smooth, and facets would show where roughness would not hide them.
+ */
+const HOLE_SAMPLE_STEP = 0.15;
+const MIN_HOLE_SAMPLES = 24;
+
 const fmt = (value: number) => String(roundCoord(value));
 
 /**
  * Walk each edge: emit the tooth as sampled points (about every 0.3 units), then
- * an inward arc for the hole. Arcs use sweep 0, and large-arc 1 when the hole
- * centre sits inside the edge line. `hole` corner mode adds a quarter-circle arc
- * at each corner into the next edge.
+ * the hole. A circular hole is one inward arc, with sweep 0 and large-arc 1 when
+ * the hole centre sits inside the edge line. A varied hole is sampled inward
+ * from where it crosses the edge line to where it leaves it. `hole` corner mode
+ * adds a quarter-circle arc at each corner into the next edge.
  *
  * Punched holes are clean; torn teeth are rough. Tear profiles and roughness
- * apply only to the tooth segments between holes, never to hole arcs.
+ * apply only to the tooth segments between holes, never to holes.
  *
  * Coordinates round to 2 decimals, so the path string is snapshot-stable.
  */
@@ -49,8 +66,12 @@ export function stampPath(layout: StampLayout): StampPath {
       if (hole && next) {
         // The arc lands where the next tooth starts.
         const p = edgePoint(edge, next.from, 0);
-        const r = fmt(hole.radius);
-        outline += `A${r} ${r} 0 ${hole.perp > 0 ? 1 : 0} 0 ${fmt(p.x)} ${fmt(p.y)}`;
+        if (hole.shape) {
+          outline += holeSamples(edge, hole) + `L${fmt(p.x)} ${fmt(p.y)}`;
+        } else {
+          const r = fmt(hole.radius);
+          outline += `A${r} ${r} 0 ${hole.perp > 0 ? 1 : 0} 0 ${fmt(p.x)} ${fmt(p.y)}`;
+        }
       }
     });
     const next = edges[(e + 1) % edges.length];
@@ -63,6 +84,28 @@ export function stampPath(layout: StampLayout): StampPath {
   });
 
   return { outline: `${outline}Z`, teeth, fibres: fibreStrokes(layout) };
+}
+
+/**
+ * A varied hole's boundary, inward from `start` to `end` (through PI/2), without
+ * its endpoints: the previous tooth ends at the first and the next starts at the
+ * last.
+ */
+function holeSamples(edge: EdgeLayout, hole: Hole): string {
+  let out = '';
+  const sweep = hole.start - hole.end;
+  const samples = Math.max(MIN_HOLE_SAMPLES, Math.ceil((hole.radius * sweep) / HOLE_SAMPLE_STEP));
+  for (let s = 1; s < samples; s++) {
+    const p = holePoint(edge, hole, hole.start - (sweep * s) / samples);
+    out += `L${fmt(p.x)} ${fmt(p.y)}`;
+  }
+  return out;
+}
+
+/** The point on a hole's boundary at angle `a` in the edge's local frame. */
+export function holePoint(edge: EdgeLayout, hole: Hole, a: number): Point {
+  const r = holeRadius(hole, a);
+  return edgePoint(edge, hole.along + r * Math.cos(a), -(hole.perp + r * Math.sin(a)));
 }
 
 /**

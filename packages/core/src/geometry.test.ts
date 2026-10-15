@@ -106,10 +106,14 @@ describe('path', () => {
     }
   });
 
-  it('keeps hole arcs clean: tears and roughness never touch them', () => {
+  it('keeps circular hole arcs clean: tears and roughness never touch them', () => {
     for (const wear of [0, 0.38, 1]) {
       for (const corners of CORNERS) {
-        const base: StampConfigInput = { seed: 4, wear, perforation: { corners } };
+        const base: StampConfigInput = {
+          seed: 4,
+          wear,
+          perforation: { corners, variation: { amount: 0 } },
+        };
         const reference = arcs(stampPath(createLayout(base)).outline);
         const rough = arcs(
           stampPath(createLayout({ ...base, tears: { roughness: 1, profiles: { frayed: 1 } } }))
@@ -132,9 +136,9 @@ describe('path', () => {
     }
   });
 
-  it('cuts one arc per hole, plus a quarter-circle per corner in hole mode', () => {
+  it('cuts one arc per circular hole, plus a quarter-circle per corner in hole mode', () => {
     for (const corners of CORNERS) {
-      const layout = createLayout({ seed: 8, perforation: { corners } });
+      const layout = createLayout({ seed: 8, perforation: { corners, variation: { amount: 0 } } });
       const holes = layout.edges.reduce((sum, edge) => sum + edge.holes.length, 0);
       expect(arcs(stampPath(layout).outline)).toHaveLength(holes + (corners === 'hole' ? 4 : 0));
     }
